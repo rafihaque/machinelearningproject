@@ -23,7 +23,7 @@ class NeuralNetwork(object):
         self.b3 = self.bias_variable([1],'b3')
 
         # create model
-        y = self.forwardpropogate(self.x)
+        y = self.forwardpropagate(self.x)
 
          # loss
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, self.y))
@@ -33,7 +33,7 @@ class NeuralNetwork(object):
         self.sess.run([tf.initialize_all_variables()])
         self.saver = tf.train.Saver()
 
-    def forwardpropogate(self,x):
+    def forwardpropagate(self,x):
         layer1 = tf.nn.relu(tf.matmul(x, self.w1)) + self.b1;
         layer1drop = tf.nn.dropout(layer1,keep_prob=self.keep_prop)
 
@@ -51,7 +51,7 @@ class NeuralNetwork(object):
         })
 
     def predict(self,testx):
-        self.yhat = self.forwardpropogate(testx)
+        self.yhat = self.forwardprapogate(testx)
         return self.yhat
 
     def savemodel(self,path):

@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
         # train the neural network
         ind =  cvperc*len(range)
-
         nn.train(x[range[:ind]],y[range[:ind]])
 
         # test the neural network
