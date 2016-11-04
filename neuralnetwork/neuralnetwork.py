@@ -1,8 +1,9 @@
 import tensorflow as tf
 import numpy as np
 import operator
+import scipy.io as sio
 
-class neuralnetwork(object):
+class NeuralNetwork(object):
     def __init__(self, numfeatures, num_nodes=4,learning_rate=0.1,keep_prob=1):
 
         # create session
@@ -30,7 +31,7 @@ class neuralnetwork(object):
 
         # initialize all variables
         self.sess.run([tf.initialize_all_variables()])
-
+        self.saver = tf.train.Saver()
 
     def forwardpropogate(self,x):
         layer1 = tf.nn.relu(tf.matmul(x, self.w1)) + self.b1;
@@ -50,7 +51,11 @@ class neuralnetwork(object):
         })
 
     def predict(self,testx):
-        return self.forwardpropogate(testx)
+        self.yhat = self.forwardpropogate(testx)
+        return self.yhat
+
+    def savemodel(self,path):
+        self.saver.save(self.sess,path)
 
 
     def placeholder(self,shape,type,name):
