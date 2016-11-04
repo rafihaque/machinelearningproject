@@ -42,7 +42,7 @@ if __name__ == "__main__":
         nn.train(x[range[:ind]],y[range[:ind]])
 
         # test the neural network
-        nn.predict(x[range[ind+1:]],y[range[ind+1:]])
+        yhat = nn.predict(x[range[ind+1:]],y[range[ind+1:]])
 
         # save out model
         nn.savemodel(savePath)
