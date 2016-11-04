@@ -52,7 +52,7 @@ class NeuralNetwork(object):
 
     def predict(self,testx):
         self.yhat = self.forwardprapogate(testx)
-        return self.yhat
+
 
     def savemodel(self,path):
         self.saver.save(self.sess,path)
