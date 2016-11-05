@@ -4,44 +4,35 @@ import operator
 import scipy.io as sio
 
 class NeuralNetwork(object):
-    def __init__(self, numfeatures, num_nodes=4,learning_rate=0.1,keep_prob=1):
+    def __init__(self, num_features, num_nodes=4,learning_rate=0.1,keep_prob=1):
 
         # create session
         self.keep_prop = keep_prob
         self.sess = tf.Session()
 
         # create placeholders for inputs
-        self.x = self.placeholder([None, numfeatures],tf.float32,"state")
-        self.y = self.placeholder([None, 1], tf.float32, "state")
+        self.x = self.placeholder('x',tf.float32,[None, num_features])
+        self.y = self.placeholder('y',tf.float32,[None, 1])
 
         # weight and bias variables for neural network
-        self.w1 = self.weight_variable([numfeatures, num_nodes],'w1')
-        self.b1 = self.bias_variable([num_nodes],'b1')
-        self.w2 = self.weight_variable([num_nodes, num_nodes],'w2')
-        self.b2 = self.bias_variable([1],'b2')
-        self.w3 = self.weight_variable([num_nodes, 1],'w3')
-        self.b3 = self.bias_variable([1],'b3')
+        self.w1 = self.weight_variable('w1',tf.float32,[num_features, num_nodes],)
+        self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
+        self.w3 = self.weight_variable('w3',tf.float32,[num_nodes, 1])
 
         # create model
-        y = self.forwardpropagate(self.x)
+        layer1 = tf.nn.relu(tf.matmul(self.x, self.w1))
+        layer1drop = tf.nn.dropout(layer1,self.keep_prop)
+        layer2 = tf.nn.relu(tf.matmul(layer1drop, self.w2))
+        layer2drop = tf.nn.dropout(layer2, self.keep_prop)
+        self.yhat = tf.matmul(layer2drop, self.w3)
 
          # loss
-        self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y, self.y))
+        self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.yhat, self.y))
         self.update = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
 
         # initialize all variables
         self.sess.run([tf.initialize_all_variables()])
         self.saver = tf.train.Saver()
-
-    def forwardpropagate(self,x):
-        layer1 = tf.nn.relu(tf.matmul(x, self.w1)) + self.b1;
-        layer1drop = tf.nn.dropout(layer1,keep_prob=self.keep_prop)
-
-        layer2 = tf.nn.relu(tf.matmul(layer1drop, self.w2)) + self.b2;
-        layer2drop = tf.nn.dropout(layer2, keep_prob=self.keep_prop)
-
-        y = tf.nn.relu(tf.matmul(layer2drop, self.w3)) + self.b3;
-        return y
 
 
     def train(self,x,y):
@@ -51,21 +42,24 @@ class NeuralNetwork(object):
         })
 
     def predict(self,testx):
-        self.yhat = self.forwardprapogate(testx)
+        self.sess.run([self.yhat], feed_dict={
+            self.x: np.array(testx)
+        })
+
+
 
 
     def savemodel(self,path):
         self.saver.save(self.sess,path)
 
 
-    def placeholder(self,shape,type,name):
-        return tf.placeholder(dtype=type, shape=shape, name=name)
+    def placeholder(self,name,type,shape):
+        return tf.placeholder(name=name,dtype=type,shape=shape)
 
-    def weight_variable(self,shape,name):
-        return tf.get_variable(name,shape=shape,initializer=tf.contrib.layers.xavier_initializer())
+    def weight_variable(self,name,type,shape):
+        return tf.get_variable(name,dtype=type,shape=shape,initializer=tf.contrib.layers.xavier_initializer())
 
-    def bias_variable(self,shape,name):
-        return tf.get_variable(name,shape=shape)
+
 
 if __name__ == "__main__":
     pass
