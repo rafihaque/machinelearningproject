@@ -29,8 +29,12 @@ if __name__ == "__main__":
                         num_nodes=nodes,
                         learning_rate=learning_rate,
                         keep_prob=keep_prop)
+
+    
     nn.train(x,s)
-    nn.predict(x)
+    yhat =  np.array(nn.predict(x))
+
+
 
     # print nn.yhat
     # print nn.w1

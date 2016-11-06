@@ -20,11 +20,7 @@ class NeuralNetwork(object):
         self.w3 = self.weight_variable('w3',tf.float32,[num_nodes, 1])
 
         # create model
-        layer1 = tf.nn.relu(tf.matmul(self.x, self.w1))
-        layer1drop = tf.nn.dropout(layer1,self.keep_prop)
-        layer2 = tf.nn.relu(tf.matmul(layer1drop, self.w2))
-        layer2drop = tf.nn.dropout(layer2, self.keep_prop)
-        self.yhat = tf.matmul(layer2drop, self.w3)
+        self.yhat = self.model(self.x)
 
          # loss
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.yhat, self.y))
@@ -34,6 +30,12 @@ class NeuralNetwork(object):
         self.sess.run([tf.initialize_all_variables()])
         self.saver = tf.train.Saver()
 
+    def model(self,x):
+        layer1 = tf.nn.relu(tf.matmul(self.x, self.w1))
+        layer1drop = tf.nn.dropout(layer1,self.keep_prop)
+        layer2 = tf.nn.relu(tf.matmul(layer1drop, self.w2))
+        layer2drop = tf.nn.dropout(layer2, self.keep_prop)
+        return tf.matmul(layer2drop, self.w3)
 
     def train(self,x,y):
         self.sess.run([self.update], feed_dict={
@@ -42,12 +44,9 @@ class NeuralNetwork(object):
         })
 
     def predict(self,testx):
-        self.sess.run([self.yhat], feed_dict={
+        return self.sess.run([self.yhat], feed_dict={
             self.x: np.array(testx)
         })
-
-
-
 
     def savemodel(self,path):
         self.saver.save(self.sess,path)
