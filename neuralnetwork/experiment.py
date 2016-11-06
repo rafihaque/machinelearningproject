@@ -15,7 +15,7 @@ if __name__ == "__main__":
     data_struct = data['BasicModel']
     x = np.transpose(data_struct['Features'][0][0])
     s = np.transpose(data_struct['Survival'][0][0])
-    c = np.transpose(data_struct['Censored'][0])
+    c = np.transpose(data_struct['Censored'][0][0])
 
     # # paramters
     folds = 5
@@ -30,7 +30,7 @@ if __name__ == "__main__":
                         learning_rate=learning_rate,
                         keep_prob=keep_prop)
 
-    
+
     nn.train(x,s)
     yhat =  np.array(nn.predict(x))
 
