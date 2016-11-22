@@ -51,21 +51,17 @@ if __name__ == "__main__":
                             keep_prob=keep_prop)
         #
         # # store ytrain and ytest
-
         ind = int(round(cvperc * len(allind)))
-        print ind
         ytrain.append(y[allind[:ind]])
         ytest.append(y[allind[ind+1:]])
         print ytrain
 
-        #
-        # # train the neural network
+        # train the neural network
+        nn.train(x[allind[:ind]],y[allind[:ind]])
 
-        # nn.train(x[range[:ind]],y[range[:ind]])
-        #
-        # # test the neural network
-        # tmp = np.array(nn.predict(x[range[ind+1:]],y[range[ind+1:]]))
-        # yhat.append()
+        # test the neural network
+        ypred.append(nn.predict(x[allind[ind + 1:]]))
+
         #
         #
         # # save out model
@@ -73,4 +69,5 @@ if __name__ == "__main__":
     test = {}
     test['ytrain'] = ytrain
     test['ytest'] = ytest
+    test['ypred'] = ypred
     sio.savemat(dataPath + save,test)
