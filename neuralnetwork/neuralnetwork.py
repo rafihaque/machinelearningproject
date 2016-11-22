@@ -17,7 +17,7 @@ class NeuralNetwork(object):
         # weight and bias variables for neural network
         self.w1 = self.weight_variable('w1',tf.float32,[num_features, num_nodes])
         # self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
-        self.w2 = self.weight_variable('w3',tf.float32,[num_nodes, 1])
+        self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, 1])
 
         # create model
         self.yhat = self.model(self.x)

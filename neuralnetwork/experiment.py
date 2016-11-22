@@ -20,16 +20,10 @@ if __name__ == "__main__":
 
     # # paramters
     folds = 5
-    nodes = 4
+    nodes = 10
     learning_rate = 0.001
     keep_prop = 1
     cvperc = 0.8
-
-    nn = NeuralNetwork(num_features=len(x[0]),
-                        num_nodes=nodes,
-                        learning_rate=learning_rate,
-                        keep_prob=keep_prop)
-
 
 
 
