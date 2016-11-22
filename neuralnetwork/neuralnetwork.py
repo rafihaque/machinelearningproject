@@ -4,7 +4,7 @@ import operator
 import scipy.io as sio
 
 class NeuralNetwork(object):
-    def __init__(self, num_features, num_nodes=4,learning_rate=0.1,keep_prob=1):
+    def __init__(self, num_features, num_nodes=4,learning_rate=0.001,keep_prob=1):
 
         # create session
         self.keep_prop = keep_prob
@@ -56,7 +56,8 @@ class NeuralNetwork(object):
         return tf.placeholder(name=name,dtype=type,shape=shape)
 
     def weight_variable(self,name,type,shape):
-        return tf.get_variable(name,dtype=type,shape=shape,initializer=tf.contrib.layers.xavier_initializer())
+        return tf.Variable(tf.truncated_normal(shape, stddev=0.01), name='w1')
+
 
 
 
