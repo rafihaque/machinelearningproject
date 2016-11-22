@@ -4,6 +4,7 @@ from random import shuffle
 import scipy.io as sio
 import os
 import tensorflow as tf
+from sklearn import metrics
 
 if __name__ == "__main__":
 
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     # # paramters
     folds = 5
     nodes = 4
-    learning_rate = 0.1
+    learning_rate = 0.001
     keep_prop = 1
     cvperc = 0.8
 
@@ -49,23 +50,24 @@ if __name__ == "__main__":
                            num_nodes=nodes,
                            learning_rate=learning_rate,
                             keep_prob=keep_prop)
-        #
-        # # store ytrain and ytest
+
+        # store ytrain and ytest
         ind = int(round(cvperc * len(allind)))
         ytrain.append(y[allind[:ind]])
         ytest.append(y[allind[ind+1:]])
-        print ytrain
 
         # train the neural network
         nn.train(x[allind[:ind]],y[allind[:ind]])
 
         # test the neural network
-        ypred.append(nn.predict(x[allind[ind + 1:]]))
+        yhat = nn.predict(x[allind[ind + 1:]])
+        ypred.append(yhat)
 
-        #
-        #
-        # # save out model
-        # nn.savemodel(savePath)
+
+        # fpr, tpr = metrics.roc_curve(y[allind[ind+1:]],yhat,pos_label=1)
+        # print metrics.auc(fpr,tpr)
+
+
     test = {}
     test['ytrain'] = ytrain
     test['ytest'] = ytest

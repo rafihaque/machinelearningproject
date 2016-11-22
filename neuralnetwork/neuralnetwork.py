@@ -15,9 +15,9 @@ class NeuralNetwork(object):
         self.y = self.placeholder('y',tf.float32,[None, 1])
 
         # weight and bias variables for neural network
-        self.w1 = self.weight_variable('w1',tf.float32,[num_features, num_nodes],)
-        self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
-        self.w3 = self.weight_variable('w3',tf.float32,[num_nodes, 1])
+        self.w1 = self.weight_variable('w1',tf.float32,[num_features, num_nodes])
+        # self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
+        self.w2 = self.weight_variable('w3',tf.float32,[num_nodes, 1])
 
         # create model
         self.yhat = self.model(self.x)
@@ -32,20 +32,20 @@ class NeuralNetwork(object):
 
     def model(self,x):
         layer1 = tf.nn.relu(tf.matmul(self.x, self.w1))
-        layer1drop = tf.nn.dropout(layer1,self.keep_prop)
-        layer2 = tf.nn.relu(tf.matmul(layer1drop, self.w2))
-        layer2drop = tf.nn.dropout(layer2, self.keep_prop)
-        return tf.matmul(layer2drop, self.w3)
+        # layer1drop = tf.nn.dropout(layer1,self.keep_prop)
+        layer2 = tf.nn.relu(tf.matmul(layer1, self.w2))
+        # layer2drop = tf.nn.dropout(layer2, self.keep_prop)
+        return layer2
 
     def train(self,x,y):
         self.sess.run([self.update], feed_dict={
-            self.x: np.array(x),
-            self.y: np.array(y)
+            self.x: x,
+            self.y: y
         })
 
     def predict(self,testx):
         return self.sess.run(self.yhat, feed_dict={
-            self.x: np.array(testx)
+            self.x: testx
         })
 
     def savemodel(self,path):
