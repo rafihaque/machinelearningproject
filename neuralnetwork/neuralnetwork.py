@@ -44,7 +44,7 @@ class NeuralNetwork(object):
         })
 
     def predict(self,testx):
-        return self.sess.run([self.yhat], feed_dict={
+        return self.sess.run(self.yhat, feed_dict={
             self.x: np.array(testx)
         })
 
