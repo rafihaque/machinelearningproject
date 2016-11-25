@@ -18,8 +18,7 @@ function Y_test = KNN_Survival2(X_test,X_train,Survival_train,Censored_train,K,B
 %
 % OUTPUTS:
 % ---------
-% Y_test - ordering of testing samples from lowest to highest predicted
-% survival
+% Y_test - predicted survival times of each patient
 %
 %% Sample Inputs
 % clear ; close all ; clc ; 
@@ -82,7 +81,6 @@ pAUC = sum(diff(t) .* f(1:end-1,:)) / sum(diff(t)); %proportion of area under cu
 elseif sum(Dist(:,3)) >= length(Dist(:,3))-1 %almost all surrounding points are censored
 pAUC = 1;
 end
-
 
 Y_test(1,P_Center) = pAUC * max(t); %since f is maximally 1, max possible survival is tmax*1
 

@@ -40,7 +40,7 @@ for i = 1:N
 S = Survival(1,i);
 
 if Censored(1,i) == 0
-    Alive(S:end,i) = -1;
+    Alive(S:end,i) = 0;
 elseif Censored(1,i) == 1
     Alive(S:end,i) = nan; % cannot ascertain alive/dead status
 end

@@ -1,4 +1,4 @@
-function Y_test = KNN_Survival2(X_test,X_train,Survival_train,Censored_train,K,Beta1)
+function Y_test = KNN_Survival(X_test,X_train,Survival_train,Censored_train,K,Beta1)
 %
 % This predicts survival based on the labels of K-nearest neighbours 
 % using weighted euclidian distance and the K-M estimator.
@@ -13,8 +13,7 @@ function Y_test = KNN_Survival2(X_test,X_train,Survival_train,Censored_train,K,B
 % Survival_train - survival of training sample
 % Censored_train - censorship of training sample: 1 = ALIVE, 0 = DEAD
 % K - number of nearest-neighbours to use
-% Beta1 - shrinkage factor --> higher values indicate less important
-%         features
+% Beta1 - weight to assign each variable (>1)
 %
 % OUTPUTS:
 % ---------
@@ -63,9 +62,14 @@ P_SurroundMax = length(Dist);
 for P_Surround = 1:P_SurroundMax
     Surround = X_train(:,P_Surround);
     
-    % Weighted euclidian distance
-    %Dist(1,P_Surround) = sqrt(sum((Beta1 .* (Center - Surround)).^2));
-    Dist(1,P_Surround) = sum((Beta1.^2) .* (abs(Center - Surround)));
+    % Mahalanobis distance between the two points (absolute distance)
+    %Dist(1,P_Surround) = abs(mahal(Center',X_train') - mahal(Surround',X_train'));
+    
+    % Euclidian distance
+    %Dist(1,P_Surround) = sqrt(sum((Center - Surround).^2));
+    
+    % Weighted euclidian distance (for feature weights)
+    Dist(1,P_Surround) = sqrt(sum(((1./Beta1) .* (Center - Surround)).^2));
     
 end
 
@@ -84,7 +88,7 @@ pAUC = 1;
 end
 
 
-Y_test(1,P_Center) = pAUC * max(t); %since f is maximally 1, max possible survival is tmax*1
+Y_test(1,P_Center) = pAUC;
 
 end
 
