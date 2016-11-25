@@ -1,4 +1,4 @@
-function sigma_star = KNN_Survival_Decend2a(X_valid,X_train,Alive_train,Alive_valid,K,Beta,Filters,Gamma,Pert,Conv_Thresh,sigma_init)
+function [sigma_star,Progress] = KNN_Survival_Decend2a(X_valid,X_train,Alive_train,Alive_valid,K,Beta,Filters,Gamma,Pert,Conv_Thresh,sigma_init,SaveProgress)
 
 %
 % This determines the optimum value for SIGMA using gradient descent
@@ -73,12 +73,23 @@ Convergence = 0;
 
 while Convergence == 0
 
-clc
-step = step + 1    
-sigma0
-sigma_star
-COST0 = mean(Cost0)
-COST_STAR = mean(Cost_star)    
+step = step + 1;    
+    
+% Uncomment the following to monitor progress
+% clc
+% step    
+% sigma0
+% sigma_star
+% COST0 = mean(Cost0)
+% COST_STAR = mean(Cost_star)   
+
+if strcmp(SaveProgress,'SaveProgress') ==1
+Progress.step(step,1) = step;
+Progress.sigma(step,1) = sigma0;
+Progress.sigma_star(step,1) = sigma_star;
+Progress.cost(step,1) = mean(Cost0);
+Progress.cost_star(step,1) = mean(Cost_star);
+end
 
 %% Perturb sigma and calculate new cost
 sigma1 = sigma0 + Pert;
