@@ -23,7 +23,7 @@ if __name__ == "__main__":
     learn_rate = 0.1
     keep_prob = 1
     cv    = 0.8
-    num_folds  = 10
+    num_folds  = 5
     num_obs    = x.shape[0]
     num_feats  = x.shape[1]
     num_tr_obs = int(round(cv * num_obs))
@@ -47,7 +47,8 @@ if __name__ == "__main__":
             test_obs = all_obs[num_tr_obs+1:]
 
             # initialize the neural network
-            nn = NeuralNetwork(num_feats=num_feats, num_nodes=node+5, learn_rate=learn_rate, keep_prob=keep_prob)
+
+            nn = NeuralNetwork(num_feats=num_feats, num_nodes=4*node, learn_rate=learn_rate, keep_prob=keep_prob)
 
             # store ytrain and ytest
             y_train[fold,node] = y[train_obs].reshape(num_tr_obs,)
