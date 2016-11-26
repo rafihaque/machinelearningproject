@@ -4,18 +4,18 @@ import operator
 import scipy.io as sio
 
 class NeuralNetwork(object):
-    def __init__(self, num_features, num_nodes=4,learning_rate=0.001,keep_prob=1):
+    def __init__(self, num_feats, num_nodes=4,learn_rate=0.001,keep_prob=1):
 
         # create session
         self.keep_prop = keep_prob
         self.sess = tf.Session()
 
         # create placeholders for inputs
-        self.x = self.placeholder('x',tf.float32,[None, num_features])
+        self.x = self.placeholder('x',tf.float32,[None, num_feats])
         self.y = self.placeholder('y',tf.float32,[None, 1])
 
         # weight and bias variables for neural network
-        self.w1 = self.weight_variable('w1',tf.float32,[num_features, num_nodes])
+        self.w1 = self.weight_variable('w1',tf.float32,[num_feats, num_nodes])
         # self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
         self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, 1])
 
@@ -24,7 +24,7 @@ class NeuralNetwork(object):
 
          # loss
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(self.yhat, self.y))
-        self.update = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(self.loss)
+        self.update = tf.train.AdamOptimizer(learning_rate=learn_rate).minimize(self.loss)
 
         # initialize all variables
         self.sess.run([tf.initialize_all_variables()])
@@ -51,6 +51,8 @@ class NeuralNetwork(object):
     def savemodel(self,path):
         self.saver.save(self.sess,path)
 
+    def close(self):
+        self.sess.close()
 
     def placeholder(self,name,type,shape):
         return tf.placeholder(name=name,dtype=type,shape=shape)
