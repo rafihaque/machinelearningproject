@@ -16,8 +16,8 @@ class NeuralNetwork(object):
 
         # weight and bias variables for neural network
         self.w1 = self.weight_variable('w1',tf.float32,[num_feats, num_nodes])
-        # self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
-        self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, 1])
+        self.w2 = self.weight_variable('w2',tf.float32,[num_nodes, num_nodes])
+        self.w3 = self.weight_variable('w3',tf.float32,[num_nodes, 1])
 
         # create model
         self.yhat = self.model(self.x)
@@ -35,7 +35,8 @@ class NeuralNetwork(object):
         # layer1drop = tf.nn.dropout(layer1,self.keep_prop)
         layer2 = tf.nn.relu(tf.matmul(layer1, self.w2))
         # layer2drop = tf.nn.dropout(layer2, self.keep_prop)
-        return layer2
+        layer2drop = tf.nn.dropout(layer2, self.keep_prop)
+        return tf.matmul(layer2,self.w3)
 
     def train(self,x,y):
         self.sess.run([self.update], feed_dict={
