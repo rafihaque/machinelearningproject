@@ -23,7 +23,7 @@ if __name__ == "__main__":
     learn_rate = 0.1
     keep_prob = 1
     cv    = 0.8
-    num_folds  = 5
+    num_folds  = 10
     num_obs    = x.shape[0]
     num_feats  = x.shape[1]
     num_tr_obs = int(round(cv * num_obs))
