@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # paramters
 
     num_nodes = 5
-    learn_rate = 0.001
+    learn_rate = 0.1
     keep_prob = 1
     cv    = 0.8
     num_folds  = 5
