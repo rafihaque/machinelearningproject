@@ -55,9 +55,9 @@ if __name__ == "__main__":
 
             y_train[fold,node] = y[train_obs].reshape(num_tr_obs,)
             y_test[fold,node] =  y[test_obs].reshape(num_te_obs,)
-
+            print y_train.shape
             # train the neural network
-            print x[train_obs]
+            print y_train
             nn.train(x[train_obs],y[train_obs])
 
             # test the neural network
