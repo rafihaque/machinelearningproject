@@ -58,7 +58,7 @@ if __name__ == "__main__":
             nn.train(x[train_obs],y[train_obs])
 
             # test the neural network
-            y_pred[node,fold] = nn.predict(x[test_obs]).reshape(num_te_obs,)
+            y_pred[fold,node] = nn.predict(x[test_obs]).reshape(num_te_obs,)
 
             nn.close()
             # fpr, tpr = metrics.roc_curve(y[allind[ind+1:]],yhat,pos_label=1)
