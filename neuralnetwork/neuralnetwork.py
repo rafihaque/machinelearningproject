@@ -31,12 +31,12 @@ class NeuralNetwork(object):
         self.saver = tf.train.Saver()
 
     def model(self,x):
-        layer1 = tf.nn.relu(tf.matmul(self.x, self.w1))
+        layer1 = tf.nn.sigmoid(tf.matmul(self.x, self.w1))
         # layer1drop = tf.nn.dropout(layer1,self.keep_prop)
-        layer2 = tf.nn.relu(tf.matmul(layer1, self.w2))
+        layer2 = tf.nn.sigmoid(tf.matmul(layer1, self.w2))
         # layer2drop = tf.nn.dropout(layer2, self.keep_prop)
         layer2drop = tf.nn.dropout(layer2, self.keep_prop)
-        return tf.nn.softmax(tf.matmul(layer2,self.w3))
+        return tf.nn.sigmoid(tf.matmul(layer2,self.w3))
 
     def train(self,x,y):
         self.sess.run([self.update], feed_dict={
