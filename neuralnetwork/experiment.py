@@ -9,7 +9,7 @@ from sklearn import metrics
 if __name__ == "__main__":
 
     # load data
-    dataPath = '~/cs534/machinelearningproject/neuralnetwork/'
+    dataPath = '/home/rhaque2/cs534/machinelearningproject/neuralnetwork/'
     file = 'TransformedModel.mat'
     save = 'Results2.mat'
     data = sio.loadmat(dataPath + file)
