@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
             # initialize the neural network
 
-            nn = NeuralNetwork(num_feats=num_feats, num_nodes=node+1, learn_rate=learn_rate, keep_prob=keep_prob)
+            nn = NeuralNetwork(num_feats=num_feats, num_nodes=2*node+1, learn_rate=learn_rate, keep_prob=keep_prob)
 
             # store ytrain and ytest
             y_train[fold,node] = y[train_obs].reshape(num_tr_obs,)
