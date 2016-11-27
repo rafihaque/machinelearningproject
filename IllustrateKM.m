@@ -158,6 +158,7 @@ im(:,:,3) = zeros(size(Alive_surround'));
 figure(2)
 image(im)
 hold on
+xlim([0,max(Dist(:,2))]);
 
 %% Predict survival of current patient
 
@@ -178,6 +179,14 @@ Yhat2 = sum(Alive_center);
 plot(Yhat2,100./[1:100], 'b--');
 hold off;
 
+% plot KM-like curve for central patient
+figure(3)
+plot([1:length(Alive_center)]',Alive_center); 
+hold on;
+xlim([0,max(Dist(:,2))]);
+plot(Yhat2,1./[1:100], 'b--');
+hold off;
+
 %% plot predicted illustrated survival for patient
 
 % separate color channels
@@ -193,9 +202,10 @@ Dead_center = 0.75 .* Dead_center;
 im2(:,:,1) = Dead_center'; 
 im2(:,:,2) = Alive_center; 
 im2(:,:,3) = zeros(size(Alive_center'));
-figure(3)
+figure(4)
 image(im2)
 hold on;
+xlim([0,max(Dist(:,2))]);
 
 % plot predicted survival time
 [Yhat2,~] = meshgrid(Yhat2,1:100);

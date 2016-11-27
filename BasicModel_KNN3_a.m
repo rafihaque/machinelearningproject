@@ -16,24 +16,33 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 % turn off warnings
 % warning('off','all')
 
-%% Using basic model as provided by Dr Lee (PerformanceExample.m) for a starter
+%% Choose which model to use
 
-% read in data and extract minimal features
+%WhichModel = 'Basic';
+WhichModel = 'Reduced';
+
+if strcmp(WhichModel, 'Basic') == 1
 load 'BasicModel.mat';
-
 Features = BasicModel.Features;
 Survival = BasicModel.Survival +3; %add 3 to ignore negative survival
 Censored = BasicModel.Censored;
+
+elseif strcmp(WhichModel, 'Reduced') == 1
+load 'ReducedModel.mat';
+Features = ReducedModel.Features;
+Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
+Censored = ReducedModel.Censored;
+end
 
 [p,N] = size(Features);
 
 %% Determine initial parameters
 
-K_min = 2; 
-K_max = 100;
+K_min = 10; 
+K_max = 70;
 
-%Filters = 'None';
-Filters = 'Both'; %choose this if performing gradient descent on sigma
+Filters = 'None';
+%Filters = 'Both'; %choose this if performing gradient descent on sigma
 
 Beta_init = ones(length(Features(:,1)),1); %initial beta (shrinking factor for features)
 sigma_init = 7;
@@ -47,9 +56,9 @@ Gamma_sigma = 10; %learning rate
 Pert_sigma = 0.1; %this controls how much to sigma beta to get a feeling for gradient
 Conv_Thresh_sigma = 0.0005; %convergence threshold for sigma
 
-%Descent = 'None'; %fast
+Descent = 'None'; %fast
 %Descent = 'Beta'; %slow, especially with more features
-Descent = 'sigma'; %slow, especially with more features
+%Descent = 'sigma'; %slow, especially with more features
 
 trial_No = 10; % no of times to shuffle
 
