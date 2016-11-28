@@ -11,7 +11,7 @@ if __name__ == "__main__":
     # load data
     dataPath = '/Users/rafihaque/PycharmProjects/machinelearningproject/neuralnetwork/'
     file = 'TransformedModel.mat'
-    save = 'Results2.mat'
+    save = 'Results3.mat'
     data = sio.loadmat(dataPath + file)
     data_struct = data['newdata']
     x = data_struct['features'][0][0]
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     for fold in range(num_folds):
         for node in range(num_nodes):
 
-            print "NODE:",5*node+1
+            print "NODE:",5*node + 1
             print "FOLD:",fold
 
             # randomize observation indices
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 
             # initialize the neural network
 
-            nn = NeuralNetwork(num_feats=num_feats, num_nodes=5*node+1, learn_rate=learn_rate, keep_prob=keep_prob)
+            nn = NeuralNetwork(num_feats=num_feats, num_nodes=node+5, learn_rate=learn_rate, keep_prob=keep_prob)
 
             # store ytrain and ytest
             y_train[fold,node] = y[train_obs].reshape(num_tr_obs,)
