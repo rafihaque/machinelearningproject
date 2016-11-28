@@ -9,7 +9,7 @@ from sklearn import metrics
 if __name__ == "__main__":
 
     # load data
-    dataPath = '/home/rhaque2/cs534/machinelearningproject/neuralnetwork/'
+    dataPath = '/Users/rafihaque/PycharmProjects/machinelearningproject/neuralnetwork/'
     file = 'TransformedModel.mat'
     save = 'Results2.mat'
     data = sio.loadmat(dataPath + file)
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     for fold in range(num_folds):
         for node in range(num_nodes):
 
-            print "NODE:",node
+            print "NODE:",5*node+1
             print "FOLD:",fold
 
             # randomize observation indices
@@ -48,14 +48,13 @@ if __name__ == "__main__":
 
             # initialize the neural network
 
-            nn = NeuralNetwork(num_feats=num_feats, num_nodes=2*node+1, learn_rate=learn_rate, keep_prob=keep_prob)
+            nn = NeuralNetwork(num_feats=num_feats, num_nodes=5*node+1, learn_rate=learn_rate, keep_prob=keep_prob)
 
             # store ytrain and ytest
             y_train[fold,node] = y[train_obs].reshape(num_tr_obs,)
             y_test[fold,node] =  y[test_obs].reshape(num_te_obs,)
 
             # train the neural network
-            print x[train_obs]
             nn.train(x[train_obs],y[train_obs])
 
             # test the neural network
