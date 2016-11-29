@@ -1,13 +1,6 @@
-%
-% Assess performance of basic model using training/validation/testing
-% approach with shuffling - KNN using the Alive_train 
-%
-% NOTE: Codes used here are a combination of original codes and codes
-% provided in the "PerformanceExample.m" script provided by Dr Lee Cooper
-% in CS-534 class
-%
-% add relevant paths
 clear; close all; clc;
+
+% add relevant paths
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/old/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/glmnet_matlab/glmnet_matlab/')
@@ -16,44 +9,40 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 % turn off warnings
 % warning('off','all')
 
-%% Choose which model to use
+%% Read in data
 
-%WhichModel = 'Basic';
-%WhichModel = 'Reduced';
-WhichModel = 'Correlated';
-
-if strcmp(WhichModel, 'Basic') == 1
-load 'BasicModel.mat';
-Features = BasicModel.Features;
-Survival = BasicModel.Survival +3; %add 3 to ignore negative survival
-Censored = BasicModel.Censored;
-
-elseif strcmp(WhichModel, 'Reduced') == 1
 load 'ReducedModel.mat';
 Features = ReducedModel.Features;
-Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
+Survival = ReducedModel.Survival +3;
 Censored = ReducedModel.Censored;
+Symbols = ReducedModel.Symbols;
+SymbolTypes = ReducedModel.SymbolTypes;
 
-elseif strcmp(WhichModel, 'Correlated') == 1
-load 'CorrelatedModel.mat';
-Features = CorrelatedModel.Features;
-Survival = CorrelatedModel.Survival +3; %add 3 to ignore negative survival
-Censored = CorrelatedModel.Censored;
+% remove NAN survival or censorship values
+Features(:,isnan(Survival)==1) = [];
+Censored(:,isnan(Survival)==1) = [];
+Survival(:,isnan(Survival)==1) = [];
 
-end
+Features(:,isnan(Censored)==1) = [];
+Survival(:,isnan(Censored)==1) = [];
+Censored(:,isnan(Censored)==1) = [];
 
 [p,N] = size(Features);
 
-%% Determine initial parameters
+%% Determine parameters and thresholds
 
-K_min = 10; 
+Feat_Thresh = 300; %number of features to keep
+
+K_min = 15; 
 K_max = 70;
 
 Filters = 'None';
 %Filters = 'Both'; %choose this if performing gradient descent on sigma
 
-Beta_init = ones(length(Features(:,1)),1); %initial beta (shrinking factor for features)
+Beta_init = ones(length(Feat_Thresh(:,1)),1); %initial beta (shrinking factor for features)
 sigma_init = 7;
+
+Lambda = 1; %the less the higher penality on lack of common dimensions
 
 % Parameters for gradient descent on beta
 Gamma_Beta = 15; %learning rate
@@ -69,8 +58,6 @@ Descent = 'None'; %fast
 %Descent = 'sigma'; %slow, especially with more features
 
 trial_No = 10; % no of times to shuffle
-
-%%
 
 C = zeros(trial_No,1);
 MSE = zeros(trial_No,1);
@@ -120,7 +107,70 @@ for trial = 1:trial_No
     time = [t_min:1:t_max]';
     Alive_prototype = TimeIndicator(Survival_prototype,Censored_prototype,t_min,t_max);
     Alive_valid = TimeIndicator(Survival_valid,Censored_valid,t_min,t_max);
-    
+
+ 
+%% Get correlation with survival in uncensored cases in training+validation sets
+%% 
+
+Features_forCorr = [X_prototype, X_valid];
+Survival_forCorr = [Survival_prototype, Survival_valid];
+Censored_forCorr = [Censored_prototype, Censored_valid];
+
+% Delete censored cases for correlating features
+Survival_forCorr(Censored_forCorr == 1) = [];
+
+j = 0;
+for i = 1:length(Censored_forCorr)    
+    if Censored_forCorr(1,i) == 1
+        Features_forCorr(:,i-j) = [];
+        j = j+1;
+    end    
+end
+
+% Get spearman correlation
+RHO = corr(Features_forCorr',Survival_forCorr','type','Spearman');
+
+% Sort by absolute correlation
+RHO(:,2) = 1:length(RHO); %feature index
+RHO = abs(RHO);
+RHO = sortrows(RHO,1);
+
+% Remove NAN values and features
+Delete1 = isnan(RHO(:,1));
+j = 0;
+for i = 1:length(Delete1)    
+    if Delete1(i,1) == 1
+        RHO(i-j,:) = [];
+        j = j+1;
+    end    
+end
+
+%% Pick top features
+
+RHO = RHO(length(RHO) - Feat_Thresh+1 :end, :);
+
+
+% Keep relevant features
+
+Features_new_prototype = zeros(length(RHO),length(X_prototype(1,:)));
+Features_new_valid = zeros(length(RHO),length(X_valid(1,:)));
+Features_new_test = zeros(length(RHO),length(X_test(1,:)));
+
+step = 1;
+for i = 1:length(RHO)
+    Features_new_prototype(step,:) = X_prototype(RHO(i,2),:);   
+    Features_new_valid(step,:) = X_valid(RHO(i,2),:);
+    Features_new_test(step,:) = X_test(RHO(i,2),:);
+    step = step +1;
+end
+
+%% Update training, validation and testing feature sets
+
+X_prototype = Features_new_prototype;
+X_valid = Features_new_valid;
+X_test = Features_new_test;
+
+
     %% Determine optimal model parameters using validation set
     
     % Determine optimal K
@@ -161,6 +211,5 @@ for trial = 1:trial_No
     C(trial,1) = cIndex2(Alive_test_hat,Survival_test,Censored_test);
     % mean squared error
     MSE(trial,1) = mean((Alive_test_hat(Censored_test==0) - Survival_test(Censored_test==0)) .^ 2);
-    
+
 end
-    

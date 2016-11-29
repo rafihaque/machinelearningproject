@@ -19,8 +19,8 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 %% Choose which model to use
 
 %WhichModel = 'Basic';
-%WhichModel = 'Reduced';
-WhichModel = 'Correlated';
+WhichModel = 'Reduced';
+%WhichModel = 'Unprocessed';
 
 if strcmp(WhichModel, 'Basic') == 1
 load 'BasicModel.mat';
@@ -34,19 +34,36 @@ Features = ReducedModel.Features;
 Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
 Censored = ReducedModel.Censored;
 
-elseif strcmp(WhichModel, 'Correlated') == 1
-load 'CorrelatedModel.mat';
-Features = CorrelatedModel.Features;
-Survival = CorrelatedModel.Survival +3; %add 3 to ignore negative survival
-Censored = CorrelatedModel.Censored;
-
+elseif strcmp(WhichModel, 'Unprocessed') == 1
+load 'GBMLGG.Data.mat';
+Survival = Survival +3; %add 3 to ignore negative survival
 end
+
+% remove NAN survival or censorship values
+Features(:,isnan(Survival)==1) = [];
+Censored(:,isnan(Survival)==1) = [];
+Survival(:,isnan(Survival)==1) = [];
+
+Features(:,isnan(Censored)==1) = [];
+Survival(:,isnan(Censored)==1) = [];
+Censored(:,isnan(Censored)==1) = [];
 
 [p,N] = size(Features);
 
+% NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Add NAN values at random to simulate missing data
+pNaN = 0.5; %proportion of NAN values
+
+NaN_Idx = randperm(N*p,N*p); 
+NaN_Idx = NaN_Idx(1:pNaN * N*p);
+
+Features(NaN_Idx) = nan;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %% Determine initial parameters
 
-K_min = 10; 
+K_min = 15; 
 K_max = 70;
 
 Filters = 'None';
@@ -54,6 +71,8 @@ Filters = 'None';
 
 Beta_init = ones(length(Features(:,1)),1); %initial beta (shrinking factor for features)
 sigma_init = 7;
+
+Lambda = 1; %the less the higher penality on lack of common dimensions
 
 % Parameters for gradient descent on beta
 Gamma_Beta = 15; %learning rate
@@ -133,7 +152,7 @@ for trial = 1:trial_No
         trial
         K 
                       
-        Y_valid_hat = KNN_Survival3(X_valid,X_prototype,Alive_prototype,K,Beta_init,Filters,sigma_init);
+        Y_valid_hat = KNN_Survival4(X_valid,X_prototype,Alive_prototype,K,Beta_init,Filters,sigma_init,Lambda);
         Y_valid_hat = sum(Y_valid_hat);
         Accuracy = cIndex2(Y_valid_hat,Survival_valid,Censored_valid);
         
@@ -148,15 +167,15 @@ for trial = 1:trial_No
     sigma_star = sigma_init;
     
     % Gradient descent on beta
-    if strcmp(Descent,'Beta') ==1
-        Beta_star = KNN_Survival_Decend2b(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_Beta,Pert_Beta,Conv_Thresh_Beta,sigma_init);
-    elseif strcmp(Descent,'sigma') ==1    
-        sigma_star = KNN_Survival_Decend2a(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_sigma,Pert_sigma,Conv_Thresh_sigma,sigma_init);      
-    end
+%     if strcmp(Descent,'Beta') ==1
+%         Beta_star = KNN_Survival_Decend2b(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_Beta,Pert_Beta,Conv_Thresh_Beta,sigma_init);
+%     elseif strcmp(Descent,'sigma') ==1    
+%         sigma_star = KNN_Survival_Decend2a(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_sigma,Pert_sigma,Conv_Thresh_sigma,sigma_init);      
+%     end
     
     %% Determining testing accuracy (c-index) using testing set
     
-    Alive_test_hat = KNN_Survival3(X_test,X_prototype,Alive_prototype,K_star,Beta_star,Filters,sigma_star);
+    Alive_test_hat = KNN_Survival4(X_test,X_prototype,Alive_prototype,K_star,Beta_star,Filters,sigma_star,Lambda);
     Alive_test_hat = sum(Alive_test_hat);
     C(trial,1) = cIndex2(Alive_test_hat,Survival_test,Censored_test);
     % mean squared error
