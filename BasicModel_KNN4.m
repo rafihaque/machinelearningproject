@@ -1,4 +1,3 @@
-%
 % Assess performance of basic model using training/validation/testing
 % approach with shuffling - KNN using the Alive_train 
 %
@@ -52,7 +51,7 @@ Censored(:,isnan(Censored)==1) = [];
 
 % NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add NAN values at random to simulate missing data
-pNaN = 0.5; %proportion of NAN values
+pNaN = 0.99; %proportion of NAN values
 
 NaN_Idx = randperm(N*p,N*p); 
 NaN_Idx = NaN_Idx(1:pNaN * N*p);
