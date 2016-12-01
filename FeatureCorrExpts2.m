@@ -1,67 +1,20 @@
-% Assess performance of basic model using training/validation/testing
-% approach with shuffling - KNN using the Alive_train 
-%
-%
-% add relevant paths
 clear; close all; clc;
-addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
-addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/old/')
-addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/glmnet_matlab/glmnet_matlab/')
-addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results/Feature_reduction/GBMLGG/')
 
-% turn off warnings
-% warning('off','all')
-
-%% Choose which model to use
-
-%WhichModel = 'Basic';
-WhichModel = 'Reduced';
-%WhichModel = 'Unprocessed';
-
-if strcmp(WhichModel, 'Basic') == 1
-load 'BasicModel.mat';
-Features = BasicModel.Features;
-Survival = BasicModel.Survival +3; %add 3 to ignore negative survival
-Censored = BasicModel.Censored;
-
-elseif strcmp(WhichModel, 'Reduced') == 1
-load 'ReducedModel.mat';
-Features = ReducedModel.Features;
-Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
-Censored = ReducedModel.Censored;
-
-elseif strcmp(WhichModel, 'Unprocessed') == 1
-load 'GBMLGG.Data.mat';
-Survival = Survival +3; %add 3 to ignore negative survival
-end
-
-% remove NAN survival or censorship values
-Features(:,isnan(Survival)==1) = [];
-Censored(:,isnan(Survival)==1) = [];
-Survival(:,isnan(Survival)==1) = [];
-
-Features(:,isnan(Censored)==1) = [];
-Survival(:,isnan(Censored)==1) = [];
-Censored(:,isnan(Censored)==1) = [];
-
-[p,N] = size(Features);
+FeatureCorrExpts
 
 % NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add NAN values at random to simulate missing data
-pNaN = 0.75; %proportion of NAN values
+% pNaN = 0.75; %proportion of NAN values
+% 
+% NaN_Idx = randperm(N*p,N*p); 
+% NaN_Idx = NaN_Idx(1:pNaN * N*p);
+% 
+% Features(NaN_Idx) = nan;
 
-NaN_Idx = randperm(N*p,N*p); 
-NaN_Idx = NaN_Idx(1:pNaN * N*p);
+% Keepin only a subset of features selected earlier
+% Feat1 --> Feat6 = from least to most correlated feature sets
 
-Features(NaN_Idx) = nan;
-
-% Using only a proportion of the features
-pFeat = 0.999; %proportion of features to delete
-
-Del = zeros(1,p);
-Del_Idx = randperm(p,ceil(p * pFeat));
-Del(Del_Idx) = 1;
-Features(Del==1,:) = [];
+Features = Features(Feat100,:);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
