@@ -1,3 +1,7 @@
+%
+% CORRELATION-BASED FEATURE SELECTION (filter method)
+%
+
 clear; close all; clc;
 
 % add relevant paths

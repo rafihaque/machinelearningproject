@@ -1,7 +1,7 @@
-% Assess performance of basic model using training/validation/testing
-% approach with shuffling - KNN using the Alive_train 
 %
+% KNN MODEL INTERPRETATION !!!
 %
+
 % add relevant paths
 clear; close all; clc;
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
@@ -44,34 +44,33 @@ Features(:,isnan(Censored)==1) = [];
 Survival(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
 
+% removing mRNA features
+% Features(399:end,:) = [];
+
 [p,N] = size(Features);
 
 % NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add NAN values at random to simulate missing data
-% pNaN = 0.75; %proportion of NAN values
-% 
-% NaN_Idx = randperm(N*p,N*p); 
-% NaN_Idx = NaN_Idx(1:pNaN * N*p);
-% 
-% Features(NaN_Idx) = nan;
-% 
-% % Using only a proportion of the features
-% pFeat = 0.999; %proportion of features to delete
-% 
-% Del = zeros(1,p);
-% Del_Idx = randperm(p,ceil(p * pFeat));
-% Del(Del_Idx) = 1;
-% Features(Del==1,:) = [];
-%
-% [p,N] = size(Features);
+pNaN = 0.75; %proportion of NAN values
+
+NaN_Idx = randperm(N*p,N*p); 
+NaN_Idx = NaN_Idx(1:pNaN * N*p);
+
+Features(NaN_Idx) = nan;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+[p,N] = size(Features);
 
 %% Determine initial parameters
 
-K_min = 15; 
-K_max = 70;
+K_min = 20;
+K_max = 50;
+%K_min = 150; 
+%K_max = 230;
+
+%K_min = 15; K_max = 15;
+%K_min = 30; K_max = 30;
+%K_min = 180; K_max = 180;
 
 Filters = 'None';
 %Filters = 'Both'; %choose this if performing gradient descent on sigma
@@ -94,12 +93,12 @@ Descent = 'None'; %fast
 %Descent = 'Beta'; %slow, especially with more features
 %Descent = 'sigma'; %slow, especially with more features
 
-trial_No = 10; % no of times to shuffle
+trial_No = 100; % no of times to shuffle
 
 %%
 
 C = zeros(trial_No,1);
-MSE = zeros(trial_No,1);
+NNvar = zeros(trial_No,398);
 
 for trial = 1:trial_No
 
@@ -118,27 +117,23 @@ for trial = 1:trial_No
     Survival = Survival_New;
     Censored = Censored_New;
 
-    %% Assign samples to PROTOTYPE set, validation set (for model selection) ... 
-    %  and testing set (for model assessment):
+    %% Assign samples to PROTOTYPE set, validation set 
     %  The reason we call it "prototype set" rather than training set is 
     %  because there is no training involved. Simply, the patients in the 
     %  validation/testing set are matched to similar ones in the prototype
     %  ("database") set.
     
-    K_cv = 3;
+    K_cv = 2;
     Folds = ceil([1:N] / (N/K_cv));
 
     X_prototype = Features(:, Folds == 1);
     X_valid = Features(:, Folds == 2);
-    X_test = Features(:, Folds == 3);
 
     Survival_prototype = Survival(:, Folds == 1);
     Survival_valid = Survival(:, Folds == 2);
-    Survival_test = Survival(:, Folds == 3);
 
     Censored_prototype = Censored(:, Folds == 1);
     Censored_valid = Censored(:, Folds == 2);
-    Censored_test = Censored(:, Folds == 3);
 
     % Convert outcome from survival to alive/dead status using time indicator
     t_min = min(Survival)-1;
@@ -159,7 +154,7 @@ for trial = 1:trial_No
         trial
         K 
                       
-        Y_valid_hat = KNN_Survival4(X_valid,X_prototype,Alive_prototype,K,Beta_init,Filters,sigma_init,Lambda);
+        [Y_valid_hat,~] = KNN_Survival5(X_valid,X_prototype,Alive_prototype,K,Beta_init,Filters,sigma_init,Lambda);
         Y_valid_hat = sum(Y_valid_hat);
         Accuracy = cIndex2(Y_valid_hat,Survival_valid,Censored_valid);
         
@@ -180,13 +175,46 @@ for trial = 1:trial_No
 %         sigma_star = KNN_Survival_Decend2a(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_sigma,Pert_sigma,Conv_Thresh_sigma,sigma_init);      
 %     end
     
-    %% Determining testing accuracy (c-index) using testing set
+    %% Determining accuracy
     
-    Alive_test_hat = KNN_Survival4(X_test,X_prototype,Alive_prototype,K_star,Beta_star,Filters,sigma_star,Lambda);
-    Alive_test_hat = sum(Alive_test_hat);
-    C(trial,1) = cIndex2(Alive_test_hat,Survival_test,Censored_test);
-    % mean squared error
-    MSE(trial,1) = mean((Alive_test_hat(Censored_test==0) - Survival_test(Censored_test==0)) .^ 2);
+    [Alive_valid_hat, X_valid_NNvar] = KNN_Survival5(X_valid,X_prototype,Alive_prototype,K_star,Beta_star,Filters,sigma_star,Lambda);
+    
+    % c-index
+    Survival_valid_hat = sum(Alive_valid_hat);
+    C(trial,1) = cIndex2(Survival_valid_hat,Survival_valid,Censored_valid);
+    
+    NNvar_current = (sum(X_valid_NNvar,2))'; 
+    
+    % removing mRNA from interpretation
+    NNvar_current(:,399:end) = [];
+    
+    % total NN variance over all patients for each feature
+    NNvar(trial,:) = NNvar_current; 
+    
     
 end
+
+
+% Z-score standardizing feature variance
+NNvar_mean = mean(NNvar);
+[NNvar_mean,~] = meshgrid(NNvar_mean,1:length(C));
+NNvar_std = std(NNvar);
+[NNvar_std,~] = meshgrid(NNvar_std,1:length(C));
+NNvar_std(NNvar_std == 0) = 0.0000000000001;
+NNvar_Zscored = (NNvar - NNvar_mean) ./ NNvar_std;
+
+% correlate feature variance with c-index
+FeatureCorr = corr(NNvar_Zscored,C);
+% add feature index
+FeatureCorr(:,2) = [1:length(NNvar(1,:))]';
+% sort so that negative correlated features are on top
+% i.e. features that vary least in nearest neighbours must've had a
+% positive impact on prediction accuracy
+FeatureCorr = sortrows(FeatureCorr,1);
+
+% Getting names of important features
+for i = 1:length(FeatureCorr(:,2))
     
+    Important_features{i,1} = ReducedModel.Symbols{FeatureCorr(i,2),1};
+    Important_features{i,2} = ReducedModel.SymbolTypes{FeatureCorr(i,2),1};
+end

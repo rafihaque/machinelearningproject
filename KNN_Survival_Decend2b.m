@@ -76,12 +76,12 @@ while Convergence == 0
 step = step + 1;    
 
 % Uncomment the following to monitor progress
-% clc
-% step
-% BETA0 = Beta0'
-% BETA_STAR = Beta_star'
-% COST0 = mean(Cost0)
-% COST_STAR = mean(Cost_star)
+clc
+step
+%BETA0 = Beta0'
+%BETA_STAR = Beta_star'
+COST0 = mean(Cost0)
+COST_STAR = mean(Cost_star)
 
 if strcmp(SaveProgress,'SaveProgress') ==1
 Progress.step(step,1) = step;

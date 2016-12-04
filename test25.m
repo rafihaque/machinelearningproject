@@ -1,7 +1,7 @@
-% Assess performance of basic model using training/validation/testing
-% approach with shuffling - KNN using the Alive_train 
 %
+% KNN MODEL INTERPRETATION !!!
 %
+
 % add relevant paths
 clear; close all; clc;
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
@@ -44,34 +44,17 @@ Features(:,isnan(Censored)==1) = [];
 Survival(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
 
-[p,N] = size(Features);
-
-% NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Add NAN values at random to simulate missing data
-% pNaN = 0.75; %proportion of NAN values
-% 
-% NaN_Idx = randperm(N*p,N*p); 
-% NaN_Idx = NaN_Idx(1:pNaN * N*p);
-% 
-% Features(NaN_Idx) = nan;
-% 
-% % Using only a proportion of the features
-% pFeat = 0.999; %proportion of features to delete
-% 
-% Del = zeros(1,p);
-% Del_Idx = randperm(p,ceil(p * pFeat));
-% Del(Del_Idx) = 1;
-% Features(Del==1,:) = [];
-%
-% [p,N] = size(Features);
+% NEW!!! REMOVE PROTEIN AND mRNA FEATURES %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Features(182:end,:) = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
+[p,N] = size(Features);
 
 %% Determine initial parameters
 
-K_min = 15; 
-K_max = 70;
+%K_min = 15; 
+%K_max = 70;
+K = 30;
 
 Filters = 'None';
 %Filters = 'Both'; %choose this if performing gradient descent on sigma
@@ -90,18 +73,18 @@ Gamma_sigma = 10; %learning rate
 Pert_sigma = 0.1; %this controls how much to sigma beta to get a feeling for gradient
 Conv_Thresh_sigma = 0.0005; %convergence threshold for sigma
 
-Descent = 'None'; %fast
-%Descent = 'Beta'; %slow, especially with more features
+%Descent = 'None'; %fast
+Descent = 'Beta'; %slow, especially with more features
 %Descent = 'sigma'; %slow, especially with more features
 
-trial_No = 10; % no of times to shuffle
+trial_No = 50; % no of times to shuffle
 
 %%
 
 C = zeros(trial_No,1);
-MSE = zeros(trial_No,1);
 
-for trial = 1:trial_No
+trial = 1;
+%for trial = 1 %:trial_No
 
     %% Shuffle samples
 
@@ -118,27 +101,23 @@ for trial = 1:trial_No
     Survival = Survival_New;
     Censored = Censored_New;
 
-    %% Assign samples to PROTOTYPE set, validation set (for model selection) ... 
-    %  and testing set (for model assessment):
+    %% Assign samples to PROTOTYPE set, validation set 
     %  The reason we call it "prototype set" rather than training set is 
     %  because there is no training involved. Simply, the patients in the 
     %  validation/testing set are matched to similar ones in the prototype
     %  ("database") set.
     
-    K_cv = 3;
+    K_cv = 2;
     Folds = ceil([1:N] / (N/K_cv));
 
     X_prototype = Features(:, Folds == 1);
     X_valid = Features(:, Folds == 2);
-    X_test = Features(:, Folds == 3);
 
     Survival_prototype = Survival(:, Folds == 1);
     Survival_valid = Survival(:, Folds == 2);
-    Survival_test = Survival(:, Folds == 3);
 
     Censored_prototype = Censored(:, Folds == 1);
     Censored_valid = Censored(:, Folds == 2);
-    Censored_test = Censored(:, Folds == 3);
 
     % Convert outcome from survival to alive/dead status using time indicator
     t_min = min(Survival)-1;
@@ -146,47 +125,114 @@ for trial = 1:trial_No
     time = [t_min:1:t_max]';
     Alive_prototype = TimeIndicator(Survival_prototype,Censored_prototype,t_min,t_max);
     Alive_valid = TimeIndicator(Survival_valid,Censored_valid,t_min,t_max);
-    
-    %% Determine optimal model parameters using validation set
-    
-    % Determine optimal K
-    K_star = 0;
-    Accuracy_star = 0;
-    
-    for K = K_min:2:K_max
-        
-        clc
-        trial
-        K 
-                      
-        Y_valid_hat = KNN_Survival4(X_valid,X_prototype,Alive_prototype,K,Beta_init,Filters,sigma_init,Lambda);
-        Y_valid_hat = sum(Y_valid_hat);
-        Accuracy = cIndex2(Y_valid_hat,Survival_valid,Censored_valid);
-        
-        if Accuracy > Accuracy_star
-            K_star = K;
-            Accuracy_star = Accuracy;
-        end
-        
-    end
 
-    Beta_star = Beta_init;
-    sigma_star = sigma_init;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Begin algorithm
+
+% initialize beta
+Beta0 = Beta_init; %shrinkage factor for each feature
     
-    % Gradient descent on beta
-%     if strcmp(Descent,'Beta') ==1
-%         Beta_star = KNN_Survival_Decend2b(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_Beta,Pert_Beta,Conv_Thresh_Beta,sigma_init);
-%     elseif strcmp(Descent,'sigma') ==1    
-%         sigma_star = KNN_Survival_Decend2a(X_valid,X_prototype,Alive_prototype,Alive_valid,K_star,Beta_init,Filters,Gamma_sigma,Pert_sigma,Conv_Thresh_sigma,sigma_init);      
-%     end
-    
-    %% Determining testing accuracy (c-index) using testing set
-    
-    Alive_test_hat = KNN_Survival4(X_test,X_prototype,Alive_prototype,K_star,Beta_star,Filters,sigma_star,Lambda);
-    Alive_test_hat = sum(Alive_test_hat);
-    C(trial,1) = cIndex2(Alive_test_hat,Survival_test,Censored_test);
-    % mean squared error
-    MSE(trial,1) = mean((Alive_test_hat(Censored_test==0) - Survival_test(Censored_test==0)) .^ 2);
-    
+%% Get cost for initialized beta
+% predicted survival
+Alive_valid_hat0 = KNN_Survival3(X_valid,X_prototype,Alive_prototype,K,Beta0,Filters,sigma_init);
+% cost over each time
+Cost0 = (Alive_valid - Alive_valid_hat0).^2;
+% average cost for each sample (excluding nan's in comparison)
+Cost_nan = isnan(Cost0);
+Cost0(Cost_nan == 1) = 0;
+Cost0 = sum(Cost0);
+Cost0 = Cost0 ./ (length(Cost_nan(:,1))-sum(Cost_nan));
+
+%% Start gradient descent till convergence
+
+Beta_star = Beta0;
+Cost_star = Cost0;
+
+step = 0;
+Convergence = 0;
+while Convergence == 0 
+
+step = step + 1;    
+
+% Uncomment the following to monitor progress
+clc
+step
+%BETA0 = Beta0'
+%BETA_STAR = Beta_star'
+COST0 = mean(Cost0)
+COST_STAR = mean(Cost_star)
+
+
+%% Find gradient with respect to each component in beta
+
+Gradient = zeros(size(Beta0));
+
+for i = 1:length(Beta0)
+
+
+%% Perturb beta component and calculate new cost
+
+Beta1 = Beta0;
+Beta1(i,1) = Beta0(i,1) + Pert_Beta;
+
+% predicted survival
+Alive_valid_hat1 = KNN_Survival3(X_valid,X_prototype,Alive_prototype,K,Beta1,Filters,sigma_init);
+% cost over each time
+Cost1 = (Alive_valid - Alive_valid_hat1).^2;
+% average cost for each sample (excluding nan's in comparison)
+Cost_nan = isnan(Cost1);
+Cost1(Cost_nan == 1) = 0;
+Cost1 = sum(Cost1);
+Cost1 = Cost1 ./ (length(Cost_nan(:,1))-sum(Cost_nan));
+
+%% Calculate gradient
+
+deltaCost = Cost1 - Cost0;
+deltaBeta = Beta1(i,1) - Beta0(i,1);
+gradient = deltaCost ./ deltaBeta;
+
+% Calculate average gradient
+Gradient(i,1) = mean(gradient);
+
 end
-    
+
+
+%% Update beta
+Beta0 = Beta0 - (Gamma .* Gradient);
+
+%% Get cost for new beta
+
+% predicted survival
+Alive_valid_hat1 = KNN_Survival3(X_valid,X_prototype,Alive_prototype,K,Beta0,Filters,sigma_init);
+% cost over each time
+Cost1 = (Alive_valid - Alive_valid_hat1).^2;
+% average cost for each sample (excluding nan's in comparison)
+Cost_nan = isnan(Cost1);
+Cost1(Cost_nan == 1) = 0;
+Cost1 = sum(Cost1);
+Cost1 = Cost1 ./ (length(Cost_nan(:,1))-sum(Cost_nan));
+
+%% Get difference in cost and act accordingle
+
+% update optimum beta
+if mean(Cost1) < mean(Cost_star)
+    Beta_star = Beta0;
+    Cost_star = Cost1;
+end
+
+% determine if convergence reached
+if abs( mean(Cost1) - mean(Cost0) ) > Conv_Thresh
+    Cost0 = Cost1;
+elseif abs( mean(Cost1) - mean(Cost0) ) <= Conv_Thresh
+    Convergence = 1; 
+end
+
+% exit if takes too long to converge
+if step > 40
+    Convergence = 1;
+end
+
+end
