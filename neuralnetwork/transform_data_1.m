@@ -1,4 +1,4 @@
-function [newdata] = transformdata(data)
+function [newdata] = transform_data_1(data)
 
 % convert signal to 
 survival = round(data.Survival/365)+1;
@@ -39,10 +39,9 @@ end
 
 
 newdata.features = zscore([tfeatures sfeat']);
+newdata.features = [tfeatures sfeat'];
+newdata.survival = [dead ~dead];
 
-
-newdata.survival = [dead];
-
-save('~/machinelearningproject/neuralnetwork/TransformedModel','newdata')
+save('~/machinelearningproject/neuralnetwork/transformed_data_1','newdata')
 
 

@@ -9,9 +9,9 @@ from sklearn import metrics
 if __name__ == "__main__":
 
     # load data
-    dataPath = '/Users/rafihaque/PycharmProjects/machinelearningproject/neuralnetwork/'
+    dataPath = '/Users/rafihaque/machinelearningproject/neuralnetwork/'
     file = 'TransformedModel.mat'
-    save = 'Results3.mat'
+    save = 'Results5.mat'
     data = sio.loadmat(dataPath + file)
     data_struct = data['newdata']
     x = data_struct['features'][0][0]
@@ -23,7 +23,7 @@ if __name__ == "__main__":
     learn_rate = 0.1
     keep_prob = 1
     cv    = 0.8
-    num_folds  = 10
+    num_folds  = 5
     num_obs    = x.shape[0]
     num_feats  = x.shape[1]
     num_tr_obs = int(round(cv * num_obs))
