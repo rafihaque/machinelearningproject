@@ -5,8 +5,6 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/old/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/glmnet_matlab/glmnet_matlab/')
 
-% turn off warnings
-% warning('off','all')
 
 %% Read in data and initial preprocessing and feature extraction
 
@@ -15,6 +13,7 @@ load 'GBMLGG.Data.mat';
 % convert to better format
 SymbolTypes = cellstr(SymbolTypes);
 Symbols = cellstr(Symbols);
+Samples = (cellstr(Samples))';
 
 % Remove features with zero variance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 nonNAN_sum = Features;
@@ -53,6 +52,14 @@ CNVGene = Features(strcmp(SymbolTypes, 'CNVGene'), :);
 CNVArm = Features(strcmp(SymbolTypes, 'CNVArm'), :);
 Protein = Features(strcmp(SymbolTypes, 'Protein'), :);
 mRNA = Features(strcmp(SymbolTypes, 'mRNA'), :);
+
+%                                         % Visualize matrix at current  moment
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(1)
+%                                         image(f_visual)
 
 % save original for monitoring what happens as you delete stuff %%%%%%%%%%%
 SymbolTypes_original = SymbolTypes;
@@ -129,7 +136,6 @@ if Delete_Only == 1
     Thr_mrna_f = 1;    
 end
 
-
 %% CLINICAL - Remove patients and features accordingly (order matters!)
 
 if Process_Clinical == 1
@@ -153,13 +159,24 @@ Protein (:, clin_p > (Thr_clin_p * length(Clinical(:,1)))) = [];
 mRNA (:, clin_p > (Thr_clin_p * length(Clinical(:,1)))) = [];
 Survival (:, clin_p > (Thr_clin_p * length(Clinical(:,1)))) = [];
 Censored (:, clin_p > (Thr_clin_p * length(Clinical(:,1)))) = [];
+Samples (:, clin_p > (Thr_clin_p * length(Clinical(:,1)))) = [];
 
 % IMPUTING missing values %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if Impute_Clinical == 1
 Clinical = KNN_Impute(Clinical,K_impute,K_mode);
 end
 
+%                                         % Visualize matrix at current  moment
+%                                         clear('Features_visual', 'f_visual')
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(2)
+%                                         image(f_visual)
+
 end
+
 
 %% MUTATION - Remove patients and features accordingly (order matters!)
 
@@ -170,8 +187,11 @@ mut_f = sum((isnan(Mutation)==1),2);
 
 Mutation (mut_f > (Thr_mut_f * length(Mutation(1,:))), :) = [];
 
-Symbols (mut_f > (Thr_mut_f * length(Mutation(1,:))), :) = [];
-SymbolTypes (mut_f > (Thr_mut_f * length(Mutation(1,:))), :) = [];
+feat_Sofar = length(Clinical(:,1));
+feat_Sofar = [zeros(feat_Sofar,1) ; mut_f > (Thr_mut_f * length(Mutation(1,:)))];
+
+Symbols (feat_Sofar == 1, :) = [];
+SymbolTypes (feat_Sofar == 1, :) = [];
 
 % remove PATIENTS missing too many features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mut_p = sum((isnan(Mutation)==1),1);
@@ -184,11 +204,21 @@ Protein (:, mut_p > (Thr_mut_p * length(Mutation(:,1)))) = [];
 mRNA (:, mut_p > (Thr_mut_p * length(Mutation(:,1)))) = [];
 Survival (:, mut_p > (Thr_mut_p * length(Mutation(:,1)))) = [];
 Censored (:, mut_p > (Thr_mut_p * length(Mutation(:,1)))) = [];
+Samples (:, mut_p > (Thr_mut_p * length(Mutation(:,1)))) = [];
 
 % IMPUTING missing values %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if Impute_Mutation == 1
 Mutation = KNN_Impute(Mutation,K_impute,K_mode);
 end
+
+%                                         % Visualize matrix at current  moment
+%                                         clear('Features_visual', 'f_visual')
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(3)
+%                                         image(f_visual)
 
 end
 
@@ -201,8 +231,12 @@ cnvgene_f = sum((isnan(CNVGene)==1),2);
 
 CNVGene (cnvgene_f > (Thr_cnvgene_f * length(CNVGene(1,:))), :) = [];
 
-Symbols (cnvgene_f > (Thr_cnvgene_f * length(CNVGene(1,:))), :) = [];
-SymbolTypes (cnvgene_f > (Thr_cnvgene_f * length(CNVGene(1,:))), :) = [];
+feat_Sofar = length(Clinical(:,1)) + length(Mutation(:,1));
+feat_Sofar = [zeros(feat_Sofar,1) ; cnvgene_f > (Thr_cnvgene_f * length(CNVGene(1,:)))];
+
+Symbols (feat_Sofar == 1, :) = [];
+SymbolTypes (feat_Sofar == 1, :) = [];
+
 
 % remove PATIENTS missing too many features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cnvgene_p = sum((isnan(CNVGene)==1),1);
@@ -215,11 +249,21 @@ Protein (:, cnvgene_p > (Thr_cnvgene_p * length(CNVGene(:,1)))) = [];
 mRNA (:, cnvgene_p > (Thr_cnvgene_p * length(CNVGene(:,1)))) = [];
 Survival (:, cnvgene_p > (Thr_cnvgene_p * length(CNVGene(:,1)))) = [];
 Censored (:, cnvgene_p > (Thr_cnvgene_p * length(CNVGene(:,1)))) = [];
+Samples (:, cnvgene_p > (Thr_cnvgene_p * length(CNVGene(:,1)))) = [];
 
 % IMPUTING missing values %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if Impute_CNVGene == 1
 CNVGene = KNN_Impute(CNVGene,K_impute,K_mode);
 end
+
+%                                         % Visualize matrix at current  moment
+%                                         clear('Features_visual', 'f_visual')
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(4)
+%                                         image(f_visual)
 
 end
 
@@ -232,8 +276,12 @@ cnvarm_f = sum((isnan(CNVArm)==1),2);
 
 CNVArm (cnvarm_f > (Thr_cnvarm_f * length(CNVArm(1,:))), :) = [];
 
-Symbols (cnvarm_f > (Thr_cnvarm_f * length(CNVArm(1,:))), :) = [];
-SymbolTypes (cnvarm_f > (Thr_cnvarm_f * length(CNVArm(1,:))), :) = [];
+feat_Sofar = length(Clinical(:,1)) + length(Mutation(:,1)) + length(CNVGene(:,1));
+feat_Sofar = [zeros(feat_Sofar,1) ; cnvarm_f > (Thr_cnvarm_f * length(CNVArm(1,:)))];
+
+Symbols (feat_Sofar == 1, :) = [];
+SymbolTypes (feat_Sofar == 1, :) = [];
+
 
 % remove PATIENTS missing too many features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 cnvarm_p = sum((isnan(CNVArm)==1),1);
@@ -246,11 +294,21 @@ Protein (:, cnvarm_p > (Thr_cnvarm_p * length(CNVArm(:,1)))) = [];
 mRNA (:, cnvarm_p > (Thr_cnvarm_p * length(CNVArm(:,1)))) = [];
 Survival (:, cnvarm_p > (Thr_cnvarm_p * length(CNVArm(:,1)))) = [];
 Censored (:, cnvarm_p > (Thr_cnvarm_p * length(CNVArm(:,1)))) = [];
+Samples (:, cnvarm_p > (Thr_cnvarm_p * length(CNVArm(:,1)))) = [];
 
 % IMPUTING missing values %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if Impute_CNVArm == 1
 CNVArm = KNN_Impute(CNVArm,K_impute,K_mode);
 end
+
+%                                         % Visualize matrix at current  moment
+%                                         clear('Features_visual', 'f_visual')
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(5)
+%                                         image(f_visual)
 
 end
 
@@ -263,8 +321,12 @@ protein_f = sum((isnan(Protein)==1),2);
 
 Protein (protein_f > (Thr_protein_f * length(Protein(1,:))), :) = [];
 
-Symbols (protein_f > (Thr_protein_f * length(Protein(1,:))), :) = [];
-SymbolTypes (protein_f > (Thr_protein_f * length(Protein(1,:))), :) = [];
+feat_Sofar = length(Clinical(:,1)) + length(Mutation(:,1)) + length(CNVGene(:,1)) + length(CNVArm(:,1));
+feat_Sofar = [zeros(feat_Sofar,1) ; protein_f > (Thr_protein_f * length(Protein(1,:)))];
+
+Symbols (feat_Sofar == 1, :) = [];
+SymbolTypes (feat_Sofar == 1, :) = [];
+
 
 % remove PATIENTS missing too many features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 protein_p = sum((isnan(Protein)==1),1);
@@ -277,12 +339,21 @@ Protein (:, protein_p > (Thr_protein_p * length(Protein(:,1)))) = [];
 mRNA (:, protein_p > (Thr_protein_p * length(Protein(:,1)))) = [];
 Survival (:, protein_p > (Thr_protein_p * length(Protein(:,1)))) = [];
 Censored (:, protein_p > (Thr_protein_p * length(Protein(:,1)))) = [];
-
+Samples (:, protein_p > (Thr_protein_p * length(Protein(:,1)))) = [];
 
 % IMPUTING missing values %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if Impute_Protein == 1
 Protein = KNN_Impute(Protein,K_impute,K_mode);
 end
+
+%                                         % Visualize matrix at current  moment
+%                                         clear('Features_visual', 'f_visual')
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(6)
+%                                         image(f_visual)
 
 end
 
@@ -295,8 +366,11 @@ mrna_f = sum((isnan(mRNA)==1),2);
 
 mRNA (mrna_f > (Thr_mrna_f * length(mRNA(1,:))), :) = [];
 
-Symbols (mrna_f > (Thr_mrna_f * length(mRNA(1,:))), :) = [];
-SymbolTypes (mrna_f > (Thr_mrna_f * length(mRNA(1,:))), :) = [];
+feat_Sofar = length(Clinical(:,1)) + length(Mutation(:,1)) + length(CNVGene(:,1)) + length(CNVArm(:,1)) + length(Protein(:,1));
+feat_Sofar = [zeros(feat_Sofar,1) ; mrna_f > (Thr_mrna_f * length(mRNA(1,:)))];
+
+Symbols (feat_Sofar == 1, :) = [];
+SymbolTypes (feat_Sofar == 1, :) = [];
 
 % remove PATIENTS missing too many features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 mrna_p = sum((isnan(mRNA)==1),1);
@@ -309,11 +383,21 @@ Protein (:, mrna_p > (Thr_mrna_p * length(mRNA(:,1)))) = [];
 mRNA (:, mrna_p > (Thr_mrna_p * length(mRNA(:,1)))) = [];
 Survival (:, mrna_p > (Thr_mrna_p * length(mRNA(:,1)))) = [];
 Censored (:, mrna_p > (Thr_mrna_p * length(mRNA(:,1)))) = [];
+Samples (:, mrna_p > (Thr_mrna_p * length(mRNA(:,1)))) = [];
 
 % IMPUTING missing values %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if Impute_mRNA == 1
 mRNA = KNN_Impute(mRNA,K_impute,K_mode);
 end
+
+%                                         % Visualize matrix at current  moment
+%                                         clear('Features_visual', 'f_visual')
+%                                         Features_visual = ~isnan([Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA(1:1000,:)]);
+%                                         f_visual(:,:,1) = zeros(size(Features_visual));
+%                                         f_visual(:,:,2) = 0.75 .* Features_visual;
+%                                         f_visual(:,:,3) = zeros(size(Features_visual));
+%                                         figure(7)
+%                                         image(f_visual)
 
 end
 
@@ -325,8 +409,152 @@ Features = [Clinical; Mutation; CNVGene; CNVArm; Protein; mRNA];
 
 Features(:,isnan(Survival)==1) = [];
 Censored(:,isnan(Survival)==1) = [];
+Samples(:,isnan(Survival)==1) = [];
 Survival(:,isnan(Survival)==1) = [];
 
 Features(:,isnan(Censored)==1) = [];
 Survival(:,isnan(Censored)==1) = [];
+Samples(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
+
+%% Pack data
+
+ReducedModel.Features = Features;
+ReducedModel.Symbols = Symbols;
+ReducedModel.SymbolTypes = SymbolTypes; 
+ReducedModel.Survival = Survival;
+ReducedModel.Censored = Censored;
+ReducedModel.Samples = Samples;
+
+%% POPULATION 1: Isolate GBM sub-population
+
+% Remove LGG patients
+isGBM1 = Features(strcmp(Symbols, 'histological_type-Is-glioblastoma multiforme (gbm)_Clinical'),:) > min(Features(strcmp(Symbols, 'histological_type-Is-glioblastoma multiforme (gbm)_Clinical'),:));
+isGBM2 = Features(strcmp(Symbols, 'histological_type-Is-treated primary gbm_Clinical'),:) > min(Features(strcmp(Symbols, 'histological_type-Is-treated primary gbm_Clinical'),:));
+isGBM3 = Features(strcmp(Symbols, 'histological_type-Is-untreated primary (de novo) gbm_Clinical'),:) > min(Features(strcmp(Symbols, 'histological_type-Is-untreated primary (de novo) gbm_Clinical'),:));
+
+isGBM = (isGBM1 + isGBM2 + isGBM3) > 0;
+
+Features_GBM = Features(:, isGBM);
+Survival_GBM = Survival(:, isGBM);
+Censored_GBM = Censored(:, isGBM);
+Samples_GBM = Samples(:, isGBM);
+Symbols_GBM = Symbols;
+SymbolTypes_GBM = SymbolTypes;
+
+% Remove GBM features (except treatment)
+Del_Idx = [1:length(Features_GBM(:,1))]';
+del1 = Del_Idx(strcmp(Symbols_GBM, 'histological_type-Is-glioblastoma multiforme (gbm)_Clinical'), 1);
+del2 = Del_Idx(strcmp(Symbols_GBM, 'histological_type-Is-untreated primary (de novo) gbm_Clinical'), 1);
+
+Feat_Del = [del1,del2];
+
+Features_GBM(Feat_Del, :) = [];
+Symbols_GBM(Feat_Del, :) = [];
+SymbolTypes_GBM(Feat_Del, :) = [];  
+
+% Pack resultant matrix
+GBM_Preprocessed.Features = Features_GBM;
+GBM_Preprocessed.Symbols = Symbols_GBM;
+GBM_Preprocessed.SymbolTypes = SymbolTypes_GBM; 
+GBM_Preprocessed.Samples = Samples_GBM; 
+GBM_Preprocessed.Survival = Survival_GBM;
+GBM_Preprocessed.Censored = Censored_GBM;
+
+%% POPULATION 2: Isolate LGG sub-population
+
+% Remove GBM patients
+
+isLGG = (isGBM1 + isGBM2 + isGBM3) == 0;
+
+Features_LGG = Features(:, isLGG);
+Survival_LGG = Survival(:, isLGG);
+Censored_LGG = Censored(:, isLGG);
+Samples_LGG = Samples(:, isLGG);
+Symbols_LGG = Symbols;
+SymbolTypes_LGG = SymbolTypes;
+
+% Remove GBM features
+Del_Idx = [1:length(Features_LGG(:,1))]';
+del1 = Del_Idx(strcmp(Symbols_LGG, 'histological_type-Is-glioblastoma multiforme (gbm)_Clinical'), 1);
+del2 = Del_Idx(strcmp(Symbols_LGG, 'histological_type-Is-treated primary gbm_Clinical'), 1);
+del3 = Del_Idx(strcmp(Symbols_LGG, 'histological_type-Is-untreated primary (de novo) gbm_Clinical'), 1);
+
+Feat_Del = [del1,del2,del3];
+
+Features_LGG(Feat_Del, :) = [];
+Symbols_LGG(Feat_Del, :) = [];
+SymbolTypes_LGG(Feat_Del, :) = [];
+
+% Pack resultant matrix
+LGG_Preprocessed.Features = Features_LGG;
+LGG_Preprocessed.Symbols = Symbols_LGG;
+LGG_Preprocessed.SymbolTypes = SymbolTypes_LGG; 
+LGG_Preprocessed.Samples = Samples_LGG; 
+LGG_Preprocessed.Survival = Survival_LGG;
+LGG_Preprocessed.Censored = Censored_LGG;
+
+
+%% POPULATION 3: Isolate LGG IDHwt patients
+
+% Get IDHmut status
+IDH1mut = Features_LGG(strcmp(Symbols_LGG, 'IDH1_Mut'),:) > min(Features_LGG(strcmp(Symbols_LGG, 'IDH1_Mut'),:));
+IDH2mut = Features_LGG(strcmp(Symbols_LGG, 'IDH2_Mut'),:) > min(Features_LGG(strcmp(Symbols_LGG, 'IDH2_Mut'),:));
+IDHmut = (IDH1mut + IDH2mut) > 0;
+
+% only keep IDHwt patients
+Features_IDHwt = Features_LGG(:, ~IDHmut);
+Survival_IDHwt = Survival_LGG(:, ~IDHmut);
+Censored_IDHwt = Censored_LGG(:, ~IDHmut);
+Samples_IDHwt = Samples_LGG(:, ~IDHmut);
+
+% Pack resultant matrix
+IDHwt_Preprocessed.Features = Features_IDHwt;
+IDHwt_Preprocessed.Symbols = Symbols_LGG;
+IDHwt_Preprocessed.SymbolTypes = SymbolTypes_LGG; 
+IDHwt_Preprocessed.Samples = Samples_IDHwt; 
+IDHwt_Preprocessed.Survival = Survival_IDHwt;
+IDHwt_Preprocessed.Censored = Censored_IDHwt;
+
+
+%% POPULATION 4: Isolate LGG IDHmut-Codel patients
+
+% Get 1p/19q co-deletion status
+Del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:) > min(Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:));
+Del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:) > min(Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:));
+Codel = (Del1p + Del19q) == 2;
+
+IDHmut_Codel = (IDHmut + Codel) == 2;
+
+% only keep codel patients
+Features_Codel = Features_LGG(:, IDHmut_Codel);
+Survival_Codel = Survival_LGG(:, IDHmut_Codel);
+Censored_Codel = Censored_LGG(:, IDHmut_Codel);
+Samples_Codel = Samples_LGG(:, IDHmut_Codel);
+
+% Pack resultant matrix
+IDHmutCodel_Preprocessed.Features = Features_Codel;
+IDHmutCodel_Preprocessed.Symbols = Symbols_LGG;
+IDHmutCodel_Preprocessed.SymbolTypes = SymbolTypes_LGG; 
+IDHmutCodel_Preprocessed.Samples = Samples_Codel; 
+IDHmutCodel_Preprocessed.Survival = Survival_Codel;
+IDHmutCodel_Preprocessed.Censored = Censored_Codel;
+
+
+%% POPULATION 5: Isolate LGG IDHmut-Non-Codel patients
+
+IDHmut_NonCodel = (IDHmut == 1) & (Codel == 0);
+
+% only keep Non-codel patients
+Features_NonCodel = Features_LGG(:, IDHmut_NonCodel);
+Survival_NonCodel = Survival_LGG(:, IDHmut_NonCodel);
+Censored_NonCodel = Censored_LGG(:, IDHmut_NonCodel);
+Samples_NonCodel = Samples_LGG(:, IDHmut_NonCodel);
+
+% Pack resultant matrix
+IDHmutNonCodel_Preprocessed.Features = Features_NonCodel;
+IDHmutNonCodel_Preprocessed.Symbols = Symbols_LGG;
+IDHmutNonCodel_Preprocessed.SymbolTypes = SymbolTypes_LGG; 
+IDHmutNonCodel_Preprocessed.Samples = Samples_NonCodel; 
+IDHmutNonCodel_Preprocessed.Survival = Survival_NonCodel;
+IDHmutNonCodel_Preprocessed.Censored = Censored_NonCodel;

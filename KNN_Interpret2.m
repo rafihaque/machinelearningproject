@@ -1,5 +1,5 @@
 %
-% OUTCOME-BASED FEATURE SELECTION (ENSEBMLE wrapper method)
+% MODEL INTERPRETATION - GBMLGG (ENSEBMLE wrapper method)
 %
 
 clear; close all; clc;
@@ -9,9 +9,6 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/old/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/glmnet_matlab/glmnet_matlab/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results/Feature_reduction/GBMLGG/')
-
-% turn off warnings
-% warning('off','all')
 
 %% Read in data
 
@@ -31,13 +28,21 @@ Features(:,isnan(Censored)==1) = [];
 Survival(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
 
-[p,N] = size(Features);
+% Make decisions on type of patient/feature set to use
+Remove_mRNA = 1;
+IDHwt = 1;
+
 
 %% Remove mRNA features
 
-Feat_lim = 399; %limit of non-mRNA features
+if Remove_mRNA == 1
+Feat_lim = 400; %limit of non-mRNA features%
 Features(Feat_lim:end,:) = [];
+Symbols(Feat_lim:end,:) = [];
+SymbolTypes(Feat_lim:end,:) = [];
+end
 
+%% 
 [p,N] = size(Features);
 
 %% Determine parameters and thresholds - KNN
@@ -215,10 +220,11 @@ Feat_rank_median = sortrows(Feat_rank_median, 2);
 % Getting names of important features (IF NEEDED)
 for i = 1:length(Features(:,1))
 
-    Important_features{i,1} = ReducedModel.Symbols{Feat_rank_median(i,1),1};
-    Important_features{i,2} = ReducedModel.SymbolTypes{Feat_rank_median(i,1),1};
+    Important_features{i,1} = Symbols{Feat_rank_median(i,1),1};
+    Important_features{i,2} = SymbolTypes{Feat_rank_median(i,1),1};
     Important_features{i,3} = Feat_rank_median(i,2);
 end
+
 
 
 %     Feat_Best = Feat_Accuracy_mean( end - Model_size +1 : end, 2);

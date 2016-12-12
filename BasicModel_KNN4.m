@@ -8,31 +8,77 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/old/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/glmnet_matlab/glmnet_matlab/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results/Feature_reduction/GBMLGG/')
+addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results/Feature_reduction/BRCA/')
 
-% turn off warnings
-% warning('off','all')
 
 %% Choose which model to use
 
+WhichModel = 'Unprocessed';
 %WhichModel = 'Basic';
-WhichModel = 'Reduced';
-%WhichModel = 'Unprocessed';
+%WhichModel = 'Reduced';
+%WhichModel = 'GBM';
+%WhichModel = 'LGG';
+%WhichModel = 'IDHwt';
+%WhichModel = 'BRCA_Unprocessed';
+%WhichModel = 'BRCA_Basic';
+%WhichModel = 'BRCA_Reduced';
 
-if strcmp(WhichModel, 'Basic') == 1
-load 'BasicModel.mat';
-Features = BasicModel.Features;
-Survival = BasicModel.Survival +3; %add 3 to ignore negative survival
-Censored = BasicModel.Censored;
+if strcmp(WhichModel, 'Unprocessed') == 1
+    load 'GBMLGG.Data.mat';
+    Survival = Survival +3; %add 3 to ignore negative survival
+    
+elseif strcmp(WhichModel, 'Basic') == 1
+    load 'BasicModel.mat';
+    Features = BasicModel.Features;
+    Survival = BasicModel.Survival +3; %add 3 to ignore negative survival
+    Censored = BasicModel.Censored;
 
 elseif strcmp(WhichModel, 'Reduced') == 1
-load 'ReducedModel.mat';
-Features = ReducedModel.Features;
-Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
-Censored = ReducedModel.Censored;
+    load 'ReducedModel.mat';
+    Features = ReducedModel.Features;
+    Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
+    Censored = ReducedModel.Censored;
 
-elseif strcmp(WhichModel, 'Unprocessed') == 1
-load 'GBMLGG.Data.mat';
-Survival = Survival +3; %add 3 to ignore negative survival
+elseif strcmp(WhichModel, 'GBM') == 1
+    load 'GBM_Preprocessed.mat';
+    Features = GBM_Preprocessed.Features;
+    Survival = GBM_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = GBM_Preprocessed.Censored;
+
+elseif strcmp(WhichModel, 'LGG') == 1
+    load 'LGG_Preprocessed.mat';
+    Features = LGG_Preprocessed.Features;
+    Survival = LGG_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = LGG_Preprocessed.Censored;
+
+elseif strcmp(WhichModel, 'IDHwt') == 1
+    load 'IDHwt_Preprocessed.mat';
+    Features = IDHwt_Preprocessed.Features;
+    Survival = IDHwt_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = IDHwt_Preprocessed.Censored;
+
+elseif strcmp(WhichModel, 'IDHmutCodel') == 1
+    load 'IDHmutCodel_Preprocessed.mat';
+    Features = IDHmutCodel_Preprocessed.Features;
+    Survival = IDHmutCodel_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = IDHmutCodel_Preprocessed.Censored;
+
+elseif strcmp(WhichModel, 'BRCA_Unprocessed') == 1
+    load 'BRCA.Data.mat';
+    Survival = Survival +3; %add 3 to ignore negative survival
+
+elseif strcmp(WhichModel, 'BRCA_Basic') == 1
+    load 'BRCA_BasicModel.mat';
+    Features = BasicModel.Features;
+    Survival = BasicModel.Survival +3; %add 3 to ignore negative survival
+    Censored = BasicModel.Censored;
+
+elseif strcmp(WhichModel, 'BRCA_Reduced') == 1
+    load 'BRCA_ReducedModel.mat';
+    Features = ReducedModel.Features;
+    Survival = ReducedModel.Survival +3; %add 3 to ignore negative survival
+    Censored = ReducedModel.Censored;
+
 end
 
 % remove NAN survival or censorship values
@@ -46,7 +92,7 @@ Censored(:,isnan(Censored)==1) = [];
 
 [p,N] = size(Features);
 
-% NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add NAN values at random to simulate missing data
 % pNaN = 0.75; %proportion of NAN values
 % 
@@ -66,33 +112,74 @@ Censored(:,isnan(Censored)==1) = [];
 % [p,N] = size(Features);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Standardize features of unprocessed model
 
+if strcmp(WhichModel, 'Unprocessed') == 1 || strcmp(WhichModel, 'BRCA_Unprocessed') == 1
+    
+    % Remove features with zero variance %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    nonNAN_sum = Features;
+    nonNAN_sum(isnan(nonNAN_sum)==1) = 0;
+    nonNAN_sum = sum(nonNAN_sum, 2);
+    nonNAN_count = ~isnan(Features);
+    nonNAN_count = sum(nonNAN_count, 2);
+    nonNAN_mean = nonNAN_sum ./ nonNAN_count;
+    [~,nonNAN_mean] = meshgrid(1:length(Features(1,:)), nonNAN_mean);
+
+    Features_mean = nonNAN_mean;
+    Features_var = (Features - nonNAN_mean) .^ 2;
+
+    nonNAN_sum = Features_var;
+    nonNAN_sum(isnan(nonNAN_sum)==1) = 0;
+    nonNAN_sum = sum(nonNAN_sum, 2);
+    nonNAN_count = ~isnan(Features_var);
+    nonNAN_count = sum(nonNAN_count, 2);
+    Features_var = nonNAN_sum ./ nonNAN_count;
+
+    Features(Features_var == 0, :) = [];
+    Symbols(Features_var == 0, :) = [];
+    SymbolTypes(Features_var == 0, :) = [];
+
+    Features_mean(Features_var == 0, :) = [];
+    Features_var(Features_var == 0, :) = [];
+
+    % Z- score standardization of features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    [~,Features_var] = meshgrid(1:length(Features(1,:)), Features_var);
+    Features = (Features - Features_mean) ./ (Features_var .^ 0.5);
+
+end
 
 %% Determine initial parameters
 
-K_min = 15; 
-K_max = 70;
+% basic and reduced model: 15 - 70
+% BRCA basic: 20 - 40
+% Unprocessed: 30 - 50
+
+K_min = 30; %15
+K_max = 50; %70
+
 
 Filters = 'None';
 %Filters = 'Both'; %choose this if performing gradient descent on sigma
 
-Beta_init = ones(length(Features(:,1)),1); %initial beta (shrinking factor for features)
-sigma_init = 7;
-
-Lambda = 1; %the less the higher penality on lack of common dimensions
-
-% Parameters for gradient descent on beta
-Gamma_Beta = 15; %learning rate
-Pert_Beta = 5; %this controls how much to perturb beta to get a feeling for gradient
-Conv_Thresh_Beta = 0.0001; %convergence threshold 
-
-Gamma_sigma = 10; %learning rate
-Pert_sigma = 0.1; %this controls how much to sigma beta to get a feeling for gradient
-Conv_Thresh_sigma = 0.0005; %convergence threshold for sigma
-
 Descent = 'None'; %fast
 %Descent = 'Beta'; %slow, especially with more features
 %Descent = 'sigma'; %slow, especially with more features
+    
+        % Ignore if descent = None
+        Beta_init = ones(length(Features(:,1)),1); %initial beta (shrinking factor for features)
+        sigma_init = 7;
+
+        Lambda = 1; %the less the higher penality on lack of common dimensions
+
+        % Parameters for gradient descent on beta
+        Gamma_Beta = 15; %learning rate
+        Pert_Beta = 5; %this controls how much to perturb beta to get a feeling for gradient
+        Conv_Thresh_Beta = 0.0001; %convergence threshold 
+
+        Gamma_sigma = 10; %learning rate
+        Pert_sigma = 0.1; %this controls how much to sigma beta to get a feeling for gradient
+        Conv_Thresh_sigma = 0.0005; %convergence threshold for sigma
+
 
 trial_No = 10; % no of times to shuffle
 

@@ -49,6 +49,10 @@ Y_IdxMax = length(X(:,1));
 
 for Y_Idx = 1:Y_IdxMax
 
+% Monitor progress
+clc
+Current_Feature = Y_Idx    
+    
 % Isolate feature to impute
 Xnew = X;
 Y = Xnew(Y_Idx,:);
@@ -95,10 +99,10 @@ for P_Surround = 1:P_SurroundMax
     Surround_temp = Surround(Keep_feat==1);
     
     % No of dimensions being compared
-    Ndim = length(Center_temp);
+    Ndim = length(Center_temp) ./ length(Center); % proportion of total dimensions kept
     
-    % PENALIZED Average dis-similrity score 
-    Dist(1,P_Surround) = sum(abs(Center_temp - Surround_temp)) ./ (Ndim.^2);
+    % Weighted euclidian distance
+    Dist(1,P_Surround) = sum(abs(Center_temp - Surround_temp)) ./ Ndim;
 end
 
 % Get nearest neighbours

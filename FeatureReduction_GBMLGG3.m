@@ -35,7 +35,7 @@ Censored(:,isnan(Censored)==1) = [];
 
 %% Remove mRNA features
 
-Feat_lim = 399; %limit of non-mRNA features
+Feat_lim = 400; %limit of non-mRNA features
 Features(Feat_lim:end,:) = [];
 
 [p,N] = size(Features);
