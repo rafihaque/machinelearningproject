@@ -1,5 +1,5 @@
 %
-% MODEL INTERPRETATION - GBMLGG (ENSEBMLE wrapper method)
+% OUTCOME-BASED FEATURE SELECTION (ENSEBMLE wrapper method)
 %
 
 clear; close all; clc;
@@ -14,12 +14,16 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 
 %% Choose which model to use
 
+%WhichModel = 'Unprocessed';
+%WhichModel = 'Basic';
 %WhichModel = 'Reduced';
 %WhichModel = 'GBM';
-%WhichModel = 'LGG';
+WhichModel = 'LGG';
 %WhichModel = 'IDHwt';
 %WhichModel = 'IDHmutCodel';
-WhichModel = 'IDHmutNonCodel';
+%WhichModel = 'IDHmutNonCodel';
+%WhichModel = 'BRCA_Unprocessed';
+%WhichModel = 'BRCA_Basic';
 %WhichModel = 'BRCA_Reduced';
 
 %% Read in data
@@ -70,7 +74,7 @@ elseif strcmp(WhichModel, 'IDHmutNonCodel') == 1
     Survival = IDHmutNonCodel_Preprocessed.Survival +3; %add 3 to ignore negative survival
     Censored = IDHmutNonCodel_Preprocessed.Censored;
     Symbols = IDHmutNonCodel_Preprocessed.Symbols;
-    SymbolTypes = IDHmutNonCodel_Preprocessed.SymbolTypes;
+    SymbolTypes = IDHmutNonCodel_Preprocessed.SymbolTypes;    
     
 elseif strcmp(WhichModel, 'BRCA_Reduced') == 1
     load 'BRCA_ReducedModel.mat';
@@ -91,26 +95,19 @@ Features(:,isnan(Censored)==1) = [];
 Survival(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
 
-% Make decisions on type of patient/feature set to use
-Remove_mRNA = 1;
-
+[p,N] = size(Features);
 
 %% Remove mRNA features
-
-if Remove_mRNA == 1
-Feat_lim = 399; %limit of non-mRNA features (399 for reduced models)
+                
+Feat_lim = 399; %limit of non-mRNA features (399 for GBMLGG, 432 for BRCA reduced models)
 Features(Feat_lim:end,:) = [];
-Symbols(Feat_lim:end,:) = [];
-SymbolTypes(Feat_lim:end,:) = [];
-end
 
-%% 
 [p,N] = size(Features);
 
 %% Determine parameters and thresholds - KNN
 
-K_min = 15; 
-K_max = 80; %70
+K_min = 15; %15
+K_max = 70; %70
 
 Filters = 'None';
 sigma_init = 7;
@@ -126,8 +123,9 @@ Descent = 'None';
 
 %%  Set other parameters
 trial_No = 10; % no of times to shuffle
-
+                    
 Feat_Thresh = 0.9; % threshold of feature inclusion in each subset (0.9 means 10% of features enter model)
+                   % 0.9 for reduced model
 Ensemble_No = 500; % number of random feature sets to generate
 
 % Number of features in final model
@@ -144,7 +142,8 @@ Feat_Include = Feat_Include > Feat_Thresh;
 
 %% Begin analysis
 
-Feat_rank = zeros(length(Features(:,1)),trial_No+1);
+C = zeros(trial_No,1);
+MSE = zeros(trial_No,1);
 
 for trial = 1:trial_No
 
@@ -157,23 +156,27 @@ for trial = 1:trial_No
     Censored = Censored(:,Idx_New);
     
 
-    %% Assign samples to PROTOTYPE set and validation set:
+    %% Assign samples to PROTOTYPE set, validation set (for model selection) ... 
+    %  and testing set (for model assessment):
     %  The reason we call it "prototype set" rather than training set is 
     %  because there is no training involved. Simply, the patients in the 
     %  validation/testing set are matched to similar ones in the prototype
     %  ("database") set.
     
-    K_cv = 2;
+    K_cv = 3;
     Folds = ceil([1:N] / (N/K_cv));
 
     X_prototype = Features(:, Folds == 1);
     X_valid = Features(:, Folds == 2);
-    
+    X_test = Features(:, Folds == 3);
+
     Survival_prototype = Survival(:, Folds == 1);
     Survival_valid = Survival(:, Folds == 2);
+    Survival_test = Survival(:, Folds == 3);
 
     Censored_prototype = Censored(:, Folds == 1);
     Censored_valid = Censored(:, Folds == 2);
+    Censored_test = Censored(:, Folds == 3);
 
     % Convert outcome from survival to alive/dead status using time indicator
     t_min = min(Survival)-1;
@@ -255,38 +258,34 @@ for trial = 1:trial_No
     % Ignore features that were not included in any ensembles
     Feat_Accuracy_mean(isnan(Feat_Accuracy_mean)==1) = 0;
     
-    % Add feature index
+    % Add feature index (for interpretation if needed)
     Feat_Accuracy_mean(:,2) = [1:length(Features(:,1))]';
     
     % sort features by accuracy
     Feat_Accuracy_mean = sortrows(Feat_Accuracy_mean, 1);
     
-    % save final feature ranks for current trial
-    Feat_Accuracy_mean(:,3) = [length(Features(:,1)) : -1 : 1]';
-    f_rank = zeros(length(Features(:,1)),1);
-    f_rank(Feat_Accuracy_mean(:,2),1) = Feat_Accuracy_mean(:,3);
+%     % Getting names of important features (IF NEEDED)
+%     for i = 1:length(Features(:,1))
+% 
+%         Important_features{i,1} = ReducedModel.Symbols{Feat_Accuracy_mean(i,2),1};
+%         Important_features{i,2} = ReducedModel.SymbolTypes{Feat_Accuracy_mean(i,2),1};
+%     end
+
+    Feat_Best = Feat_Accuracy_mean( end - Model_size +1 : end, 2);
+
     
-    Feat_rank(:,trial) = f_rank;
+    %% Calculate error using testing set
     
+    X_prototype = X_prototype(Feat_Best, :);
+    X_test = X_test(Feat_Best, :);
+    
+    Beta1 = ones(length(X_test(:,1)),1);
+    
+    Alive_test_hat = KNN_Survival3(X_test,X_prototype,Alive_prototype,K_star,Beta1,Filters,sigma_init);
+    Alive_test_hat = sum(Alive_test_hat);
+    C(trial,1) = cIndex2(Alive_test_hat,Survival_test,Censored_test);
+    % mean squared error
+    MSE(trial,1) = mean((Alive_test_hat(Censored_test==0) - Survival_test(Censored_test==0)) .^ 2);
     
 
 end
-
-% find median rank over all trials
-Feat_rank_median(:,1) = [1:length(Features(:,1))]'; %feature index
-Feat_rank_median(:,2) = median(Feat_rank, 2);
-
-% sort by median rank
-Feat_rank_median = sortrows(Feat_rank_median, 2);
-
-% Getting names of important features (IF NEEDED)
-for i = 1:length(Features(:,1))
-
-    Important_features{i,1} = Symbols{Feat_rank_median(i,1),1};
-    Important_features{i,2} = SymbolTypes{Feat_rank_median(i,1),1};
-    Important_features{i,3} = Feat_rank_median(i,2);
-end
-
-
-
-%     Feat_Best = Feat_Accuracy_mean( end - Model_size +1 : end, 2);

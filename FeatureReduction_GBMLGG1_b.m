@@ -325,8 +325,8 @@ IDHwt_Preprocessed.Censored = Censored_IDHwt;
 unknown1p = isnan(Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:));
 unknown19q = isnan(Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:));
 
-del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'), :) > min(Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'), :));
-del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'), :) > min(Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'), :)); 
+del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'), :) < 0;
+del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'), :) < 0; 
 
 del1p(unknown1p==1) = 0; % since NAN values are considered >min
 del19q(unknown19q==1) = 0; %since NAN values are considered >min

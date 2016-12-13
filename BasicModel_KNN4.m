@@ -13,11 +13,11 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 
 %% Choose which model to use
 
-WhichModel = 'Unprocessed';
+%WhichModel = 'Unprocessed';
 %WhichModel = 'Basic';
 %WhichModel = 'Reduced';
 %WhichModel = 'GBM';
-%WhichModel = 'LGG';
+WhichModel = 'LGG';
 %WhichModel = 'IDHwt';
 %WhichModel = 'BRCA_Unprocessed';
 %WhichModel = 'BRCA_Basic';
@@ -150,12 +150,14 @@ end
 
 %% Determine initial parameters
 
-% basic and reduced model: 15 - 70
+% basic model: 15 - 70
 % BRCA basic: 20 - 40
+% Reduced: 20 - 40
+% BRCA reduced: 40 - 70
 % Unprocessed: 30 - 50
 
-K_min = 30; %15
-K_max = 50; %70
+K_min = 15; %15
+K_max = 70; %70
 
 
 Filters = 'None';

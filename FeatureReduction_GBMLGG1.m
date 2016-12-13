@@ -10,6 +10,8 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/g
 
 load 'GBMLGG.Data.mat';
 
+Zscore_First = 1; %z-score at first or for each subpopulation separately?
+
 % convert to better format
 SymbolTypes = cellstr(SymbolTypes);
 Symbols = cellstr(Symbols);
@@ -41,9 +43,11 @@ SymbolTypes(Features_var == 0, :) = [];
 Features_mean(Features_var == 0, :) = [];
 Features_var(Features_var == 0, :) = [];
 
+if Zscore_First == 1
 % Z- score standardization of features %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [~,Features_var] = meshgrid(1:length(Features(1,:)), Features_var);
 Features = (Features - Features_mean) ./ (Features_var .^ 0.5);
+end
 
 % define different feature matrices %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Clinical = Features(strcmp(SymbolTypes,'Clinical'), :);
@@ -417,6 +421,7 @@ Survival(:,isnan(Censored)==1) = [];
 Samples(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
 
+
 %% Pack data
 
 ReducedModel.Features = Features;
@@ -425,6 +430,17 @@ ReducedModel.SymbolTypes = SymbolTypes;
 ReducedModel.Survival = Survival;
 ReducedModel.Censored = Censored;
 ReducedModel.Samples = Samples;
+
+% Z-score standardization
+if Zscore_First == 0
+Features_mean = mean(Features, 2);
+[~,Features_mean] = meshgrid(1:length(Features(1,:)), Features_mean);
+Features_std = std(Features');
+[~,Features_std] = meshgrid(1:length(Features(1,:)), Features_std');
+Features_Zscored = (Features - Features_mean) ./ Features_std;
+Features_Zscored(isnan(Features_Zscored)==1) = 0;
+ReducedModel.Features = Features_Zscored;
+end
 
 %% POPULATION 1: Isolate GBM sub-population
 
@@ -461,6 +477,17 @@ GBM_Preprocessed.Samples = Samples_GBM;
 GBM_Preprocessed.Survival = Survival_GBM;
 GBM_Preprocessed.Censored = Censored_GBM;
 
+if Zscore_First == 0
+% Z-score standardization
+Features_mean_GBM = mean(Features_GBM, 2);
+[~,Features_mean_GBM] = meshgrid(1:length(Features_GBM(1,:)), Features_mean_GBM);
+Features_std_GBM = std(Features_GBM');
+[~,Features_std_GBM] = meshgrid(1:length(Features_GBM(1,:)), Features_std_GBM');
+Features_Zscored_GBM = (Features_GBM - Features_mean_GBM) ./ Features_std_GBM;
+Features_Zscored_GBM(isnan(Features_Zscored_GBM)==1) = 0;
+GBM_Preprocessed.Features = Features_Zscored_GBM;
+end
+
 %% POPULATION 2: Isolate LGG sub-population
 
 % Remove GBM patients
@@ -494,6 +521,16 @@ LGG_Preprocessed.Samples = Samples_LGG;
 LGG_Preprocessed.Survival = Survival_LGG;
 LGG_Preprocessed.Censored = Censored_LGG;
 
+if Zscore_First == 0
+%Z-score standardization
+Features_mean_LGG = mean(Features_LGG, 2);
+[~,Features_mean_LGG] = meshgrid(1:length(Features_LGG(1,:)), Features_mean_LGG);
+Features_std_LGG = std(Features_LGG');
+[~,Features_std_LGG] = meshgrid(1:length(Features_LGG(1,:)), Features_std_LGG');
+Features_Zscored_LGG = (Features_LGG - Features_mean_LGG) ./ Features_std_LGG;
+Features_Zscored_LGG(isnan(Features_Zscored_LGG)==1) = 0;
+LGG_Preprocessed.Features = Features_Zscored_LGG;
+end
 
 %% POPULATION 3: Isolate LGG IDHwt patients
 
@@ -516,12 +553,22 @@ IDHwt_Preprocessed.Samples = Samples_IDHwt;
 IDHwt_Preprocessed.Survival = Survival_IDHwt;
 IDHwt_Preprocessed.Censored = Censored_IDHwt;
 
+if Zscore_First == 0
+% Z-score standardization
+Features_mean_IDHwt = mean(Features_IDHwt, 2);
+[~,Features_mean_IDHwt] = meshgrid(1:length(Features_IDHwt(1,:)), Features_mean_IDHwt);
+Features_std_IDHwt = std(Features_IDHwt');
+[~,Features_std_IDHwt] = meshgrid(1:length(Features_IDHwt(1,:)), Features_std_IDHwt');
+Features_Zscored_IDHwt = (Features_IDHwt - Features_mean_IDHwt) ./ Features_std_IDHwt;
+Features_Zscored_IDHwt(isnan(Features_Zscored_IDHwt)==1) = 0;
+IDHwt_Preprocessed.Features = Features_Zscored_IDHwt;
+end
 
 %% POPULATION 4: Isolate LGG IDHmut-Codel patients
 
 % Get 1p/19q co-deletion status
-Del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:) > min(Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:));
-Del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:) > min(Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:));
+Del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:) < 0;
+Del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:) < 0;
 Codel = (Del1p + Del19q) == 2;
 
 IDHmut_Codel = (IDHmut + Codel) == 2;
@@ -540,6 +587,16 @@ IDHmutCodel_Preprocessed.Samples = Samples_Codel;
 IDHmutCodel_Preprocessed.Survival = Survival_Codel;
 IDHmutCodel_Preprocessed.Censored = Censored_Codel;
 
+if Zscore_First == 0
+% Z-score standardization
+Features_mean_Codel = mean(Features_Codel, 2);
+[~,Features_mean_Codel] = meshgrid(1:length(Features_Codel(1,:)), Features_mean_Codel);
+Features_std_Codel = std(Features_Codel');
+[~,Features_std_Codel] = meshgrid(1:length(Features_Codel(1,:)), Features_std_Codel');
+Features_Zscored_Codel = (Features_Codel - Features_mean_Codel) ./ Features_std_Codel;
+Features_Zscored_Codel(isnan(Features_Zscored_Codel)==1) = 0;
+IDHmutCodel_Preprocessed.Features = Features_Zscored_Codel;
+end
 
 %% POPULATION 5: Isolate LGG IDHmut-Non-Codel patients
 
@@ -558,3 +615,14 @@ IDHmutNonCodel_Preprocessed.SymbolTypes = SymbolTypes_LGG;
 IDHmutNonCodel_Preprocessed.Samples = Samples_NonCodel; 
 IDHmutNonCodel_Preprocessed.Survival = Survival_NonCodel;
 IDHmutNonCodel_Preprocessed.Censored = Censored_NonCodel;
+
+if Zscore_First == 0
+% Z-score standardization
+Features_mean_NonCodel = mean(Features_NonCodel, 2);
+[~,Features_mean_NonCodel] = meshgrid(1:length(Features_NonCodel(1,:)), Features_mean_NonCodel);
+Features_std_NonCodel = std(Features_NonCodel');
+[~,Features_std_NonCodel] = meshgrid(1:length(Features_NonCodel(1,:)), Features_std_NonCodel');
+Features_Zscored_NonCodel = (Features_NonCodel - Features_mean_NonCodel) ./ Features_std_NonCodel;
+Features_Zscored_NonCodel(isnan(Features_Zscored_NonCodel)==1) = 0;
+IDHmutNonCodel_Preprocessed.Features = Features_Zscored_NonCodel;
+end
