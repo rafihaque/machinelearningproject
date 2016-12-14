@@ -17,9 +17,9 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 %WhichModel = 'Basic';
 %WhichModel = 'Reduced';
 %WhichModel = 'GBM';
-WhichModel = 'LGG';
+%WhichModel = 'LGG';
 %WhichModel = 'IDHwt';
-%WhichModel = 'BRCA_Unprocessed';
+WhichModel = 'BRCA_Unprocessed';
 %WhichModel = 'BRCA_Basic';
 %WhichModel = 'BRCA_Reduced';
 
@@ -65,7 +65,7 @@ elseif strcmp(WhichModel, 'IDHmutCodel') == 1
 
 elseif strcmp(WhichModel, 'BRCA_Unprocessed') == 1
     load 'BRCA.Data.mat';
-    Survival = Survival +3; %add 3 to ignore negative survival
+    Survival = Survival +9; %add 3 to ignore negative survival
 
 elseif strcmp(WhichModel, 'BRCA_Basic') == 1
     load 'BRCA_BasicModel.mat';

@@ -11,7 +11,6 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/g
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results/Feature_reduction/GBMLGG/')
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results/Feature_reduction/BRCA/')
 
-
 %% Choose which model to use
 
 %WhichModel = 'Unprocessed';
@@ -19,10 +18,12 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 %WhichModel = 'Reduced';
 %WhichModel = 'GBM';
 %WhichModel = 'LGG';
-%WhichModel = 'IDHwt';
+WhichModel = 'IDHwt';
+%WhichModel = 'IDHmutCodel';
+%WhichModel = 'IDHmutNonCodel';
 %WhichModel = 'BRCA_Unprocessed';
 %WhichModel = 'BRCA_Basic';
-WhichModel = 'BRCA_Reduced';
+%WhichModel = 'BRCA_Reduced';
 
 %% Read in data
 
@@ -33,6 +34,46 @@ if strcmp(WhichModel, 'Reduced') == 1
     Censored = ReducedModel.Censored;
     Symbols = ReducedModel.Symbols;
     SymbolTypes = ReducedModel.SymbolTypes;
+    
+elseif strcmp(WhichModel, 'GBM') == 1
+    load 'GBM_Preprocessed.mat';
+    Features = GBM_Preprocessed.Features;
+    Survival = GBM_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = GBM_Preprocessed.Censored;
+    Symbols = GBM_Preprocessed.Symbols;
+    SymbolTypes = GBM_Preprocessed.SymbolTypes;
+
+elseif strcmp(WhichModel, 'LGG') == 1
+    load 'LGG_Preprocessed.mat';
+    Features = LGG_Preprocessed.Features;
+    Survival = LGG_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = LGG_Preprocessed.Censored;
+    Symbols = LGG_Preprocessed.Symbols;
+    SymbolTypes = LGG_Preprocessed.SymbolTypes;
+
+elseif strcmp(WhichModel, 'IDHwt') == 1
+    load 'IDHwt_Preprocessed.mat';
+    Features = IDHwt_Preprocessed.Features;
+    Survival = IDHwt_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = IDHwt_Preprocessed.Censored;
+    Symbols = IDHwt_Preprocessed.Symbols;
+    SymbolTypes = IDHwt_Preprocessed.SymbolTypes;
+
+elseif strcmp(WhichModel, 'IDHmutCodel') == 1
+    load 'IDHmutCodel_Preprocessed.mat';
+    Features = IDHmutCodel_Preprocessed.Features;
+    Survival = IDHmutCodel_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = IDHmutCodel_Preprocessed.Censored;
+    Symbols = IDHmutCodel_Preprocessed.Symbols;
+    SymbolTypes = IDHmutCodel_Preprocessed.SymbolTypes;
+    
+elseif strcmp(WhichModel, 'IDHmutNonCodel') == 1
+    load 'IDHmutNonCodel_Preprocessed.mat';
+    Features = IDHmutNonCodel_Preprocessed.Features;
+    Survival = IDHmutNonCodel_Preprocessed.Survival +3; %add 3 to ignore negative survival
+    Censored = IDHmutNonCodel_Preprocessed.Censored;
+    Symbols = IDHmutNonCodel_Preprocessed.Symbols;
+    SymbolTypes = IDHmutNonCodel_Preprocessed.SymbolTypes;    
     
 elseif strcmp(WhichModel, 'BRCA_Reduced') == 1
     load 'BRCA_ReducedModel.mat';
@@ -59,8 +100,8 @@ Censored(:,isnan(Censored)==1) = [];
 
 Feat_Thresh = 300; %number of features to keep
 
-K_min = 15; 
-K_max = 70;
+K_min = 5; 
+K_max = 23;
 
 Filters = 'None';
 %Filters = 'Both'; %choose this if performing gradient descent on sigma

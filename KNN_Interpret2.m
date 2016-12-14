@@ -16,10 +16,10 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 
 %WhichModel = 'Reduced';
 %WhichModel = 'GBM';
-%WhichModel = 'LGG';
+WhichModel = 'LGG';
 %WhichModel = 'IDHwt';
 %WhichModel = 'IDHmutCodel';
-WhichModel = 'IDHmutNonCodel';
+%WhichModel = 'IDHmutNonCodel';
 %WhichModel = 'BRCA_Reduced';
 
 %% Read in data
@@ -92,7 +92,7 @@ Survival(:,isnan(Censored)==1) = [];
 Censored(:,isnan(Censored)==1) = [];
 
 % Make decisions on type of patient/feature set to use
-Remove_mRNA = 1;
+Remove_mRNA = 0; %if == 0, set higher threshold for feature removal (0.99)
 
 
 %% Remove mRNA features
@@ -109,8 +109,8 @@ end
 
 %% Determine parameters and thresholds - KNN
 
-K_min = 15; 
-K_max = 80; %70
+K_min = 15; %15 
+K_max = 60; %70
 
 Filters = 'None';
 sigma_init = 7;
@@ -127,7 +127,8 @@ Descent = 'None';
 %%  Set other parameters
 trial_No = 10; % no of times to shuffle
 
-Feat_Thresh = 0.9; % threshold of feature inclusion in each subset (0.9 means 10% of features enter model)
+Feat_Thresh = 0.99; % threshold of feature inclusion in each subset (0.9 means 10% of features enter model)
+                    % 0.9 is no mRNA and 0.99 id with mRNA
 Ensemble_No = 500; % number of random feature sets to generate
 
 % Number of features in final model

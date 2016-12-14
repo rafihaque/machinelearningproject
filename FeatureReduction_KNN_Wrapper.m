@@ -17,8 +17,8 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 %WhichModel = 'Unprocessed';
 %WhichModel = 'Basic';
 %WhichModel = 'Reduced';
-%WhichModel = 'GBM';
-WhichModel = 'LGG';
+WhichModel = 'GBM';
+%WhichModel = 'LGG';
 %WhichModel = 'IDHwt';
 %WhichModel = 'IDHmutCodel';
 %WhichModel = 'IDHmutNonCodel';
@@ -106,8 +106,8 @@ Features(Feat_lim:end,:) = [];
 
 %% Determine parameters and thresholds - KNN
 
-K_min = 15; %15
-K_max = 70; %70
+K_min = 30; %15 (general) %30 (GBM)
+K_max = 85; %70 %85 (GBM)
 
 Filters = 'None';
 sigma_init = 7;
