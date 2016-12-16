@@ -1,5 +1,3 @@
-clear; close all; clc;
-
 % add relevant paths
 clear; close all; clc;
 addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Data/')

@@ -101,8 +101,6 @@ Keep = ~isnan(Survival) & ~isnan(Censored) & (sum(isnan(Features), 1) == 0);
 Features = Features(:, Keep);
 Survival = Survival(Keep);
 Censored = Censored(Keep);
-% Censored = Censored+1;
-% Censored(Censored==2) = 0;
 [p,N] = size(Features);
  
  
@@ -147,7 +145,6 @@ for trial = 1:trial_No
         
         %%
        
-    %Y_hat_test = cvglmnetPredict(cvfit, X_test', []);
     C(trial,1) = cIndex(BetaBasic, X_test',Survival_test, Censored_test);
     
 end

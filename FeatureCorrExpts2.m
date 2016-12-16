@@ -72,10 +72,6 @@ for trial = 1:trial_No
 
     %% Assign samples to PROTOTYPE set, validation set (for model selection) ... 
     %  and testing set (for model assessment):
-    %  The reason we call it "prototype set" rather than training set is 
-    %  because there is no training involved. Simply, the patients in the 
-    %  validation/testing set are matched to similar ones in the prototype
-    %  ("database") set.
     
     K_cv = 3;
     Folds = ceil([1:N] / (N/K_cv));

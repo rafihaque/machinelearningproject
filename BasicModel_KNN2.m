@@ -17,7 +17,7 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 % turn off warnings
 % warning('off','all')
 
-%% Using basic model as provided by Dr Lee (PerformanceExample.m) for a starter
+%% Using basic model as provided by Dr Lee (PerformanceExample.m)
 
 % read in data and extract minimal features
 load 'BasicModel.mat';

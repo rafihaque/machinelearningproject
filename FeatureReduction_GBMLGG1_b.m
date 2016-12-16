@@ -325,6 +325,11 @@ IDHwt_Preprocessed.Censored = Censored_IDHwt;
 unknown1p = isnan(Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:));
 unknown19q = isnan(Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:));
 
+% Since this is a copy-number variation, one cannot guarantee that the
+% threshold for calling something a chromosomal deletion is if it's < 0,
+% but for these two features, it so happens that this is the case (manully
+% checked).
+
 del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'), :) < 0;
 del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'), :) < 0; 
 

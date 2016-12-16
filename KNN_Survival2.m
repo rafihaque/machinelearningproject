@@ -32,10 +32,7 @@ function Y_test = KNN_Survival2(X_test,X_train,Survival_train,Censored_train,K,B
 % % FOR THE FOLLOWING: features in rows, samples on columns
 % %
 % X_train = randn(p,N_train); % training features (continuous)
-% %X_train = randi([0,1],p,N_train); % training features (binary)
-% 
 % X_test = randn(p,N_test); % testing features (continuous)
-% %X_test = randi([0,1],p,N_test); % testing features (binary)
 % 
 % Survival_train = randi([1,300],1,N_train); % survival of training sample
 % Censored_train = randi([0,1],1,N_train); % censorship of training sample: 1=alive
@@ -64,7 +61,6 @@ for P_Surround = 1:P_SurroundMax
     Surround = X_train(:,P_Surround);
     
     % Weighted euclidian distance
-    %Dist(1,P_Surround) = sqrt(sum((Beta1 .* (Center - Surround)).^2));
     Dist(1,P_Surround) = sum((Beta1.^2) .* (abs(Center - Surround)));
     
 end

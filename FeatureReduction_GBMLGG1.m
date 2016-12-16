@@ -10,7 +10,7 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Codes/g
 
 load 'GBMLGG.Data.mat';
 
-Zscore_First = 1; %z-score at first or for each subpopulation separately?
+Zscore_First = 0; %z-score at first or for each subpopulation separately?
 
 % convert to better format
 SymbolTypes = cellstr(SymbolTypes);
@@ -567,6 +567,10 @@ end
 %% POPULATION 4: Isolate LGG IDHmut-Codel patients
 
 % Get 1p/19q co-deletion status
+% Since this is a copy-number variation, one cannot guarantee that the
+% threshold for calling something a chromosomal deletion is < 0 after Z-scoring,
+% but for these two features, it so happens that this is the case (manually
+% checked).
 Del1p = Features_LGG(strcmp(Symbols_LGG, '1p_CNVArm'),:) < 0;
 Del19q = Features_LGG(strcmp(Symbols_LGG, '19q_CNVArm'),:) < 0;
 Codel = (Del1p + Del19q) == 2;

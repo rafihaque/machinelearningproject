@@ -1,10 +1,7 @@
 %
 % Assess performance of basic model using training/validation/testing
 % approach with shuffling - KNN using the Alive_train 
-%
-% NOTE: Codes used here are a combination of original codes and codes
-% provided in the "PerformanceExample.m" script provided by Dr Lee Cooper
-% in CS-534 class
+% THIS TESTS GRADIENT DESCENT ON SIGMA AND BETA
 %
 % add relevant paths
 clear; close all; clc;

@@ -101,7 +101,7 @@ Censored(:,isnan(Censored)==1) = [];
 Feat_Thresh = 300; %number of features to keep
 
 K_min = 5; 
-K_max = 23;
+K_max = 20;
 
 Filters = 'None';
 %Filters = 'Both'; %choose this if performing gradient descent on sigma

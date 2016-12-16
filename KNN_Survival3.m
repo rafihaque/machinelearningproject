@@ -78,10 +78,7 @@ for P_Surround = 1:P_SurroundMax
     Surround = X_train(:,P_Surround);
     
     % Weighted euclidian distance
-    %Dist(1,P_Surround) = sqrt(sum((Beta .* (Center - Surround)) .^2));
-    %Dist(1,P_Surround) = sqrt(sum(10.*Beta .* ((Center - Surround) .^2)));
     Dist(1,P_Surround) = sum((Beta1.^2) .* (abs(Center - Surround)));
-    %Dist(1,P_Surround) = sum(Beta .* ((Center - Surround).^2));   
     
 end
 
@@ -114,9 +111,6 @@ if strcmp(Filters,'Euclidian') == 1 || ...
         strcmp(Filters,'Both') == 1
     euclFilter = 1- (Dist(:,1) ./ sum(Dist(:,1)));
     euclFilter = euclFilter ./ sum(euclFilter);
-    
-    %euclFilter = 1 ./ (Dist(:,1));
-    %euclFilter(isnan(euclFilter)==1) = 1 / min(Dist(:,1)); %if two patients are exactly the same
 end
 % final filter
 if strcmp(Filters,'Euclidian') == 1 

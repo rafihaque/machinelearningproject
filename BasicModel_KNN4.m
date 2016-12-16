@@ -1,5 +1,6 @@
-% Assess performance of basic model using training/validation/testing
-% approach with shuffling - KNN using the Alive_train 
+%
+% Assess performance using training/validation/testing
+% approach with shuffling - KNN_Survival4 using the Alive_train 
 %
 %
 % add relevant paths
@@ -14,12 +15,12 @@ addpath('/home/mohamed/Desktop/Class/CS534-MachineLearning/Class Project/Results
 %% Choose which model to use
 
 %WhichModel = 'Unprocessed';
-%WhichModel = 'Basic';
+WhichModel = 'Basic';
 %WhichModel = 'Reduced';
 %WhichModel = 'GBM';
 %WhichModel = 'LGG';
 %WhichModel = 'IDHwt';
-WhichModel = 'BRCA_Unprocessed';
+%WhichModel = 'BRCA_Unprocessed';
 %WhichModel = 'BRCA_Basic';
 %WhichModel = 'BRCA_Reduced';
 
@@ -92,7 +93,7 @@ Censored(:,isnan(Censored)==1) = [];
 
 [p,N] = size(Features);
 
-%% NEW!!! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Add NAN values at random to simulate missing data
 % pNaN = 0.75; %proportion of NAN values
 % 

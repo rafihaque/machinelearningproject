@@ -1,7 +1,7 @@
 function Alive_test = KNN_Survival4(X_test,X_train,Alive_train,K,Beta1,Filters,sigma,Lambda)
 %
 % This predicts survival based on the labels of K-nearest neighbours 
-% using weighted euclidian distance and the K-M estimator.
+% using weighted euclidian distance and non-cumulative survival probability.
 %
 % INPUTS: 
 % --------
@@ -23,7 +23,6 @@ function Alive_test = KNN_Survival4(X_test,X_train,Alive_train,K,Beta1,Filters,s
 % OUTPUTS:
 % ---------
 % Alive_test - Alive dead status (continuous: +1 (alive) --> -1 (dead))
-% time - time indicator 
 %
 
 %% Sample Inputs
