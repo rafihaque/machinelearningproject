@@ -1,1 +1,0 @@
-scrCox.m assumes that ClinicalData.mat and the rest of the data are located in the same folder as this file.
